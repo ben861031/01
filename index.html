@@ -39,11 +39,6 @@ body{
     font-size:32px;
 }
 
-.header p{
-    margin-top:8px;
-    opacity:0.9;
-}
-
 .layout{
     display:grid;
     grid-template-columns:360px 1fr;
@@ -108,19 +103,22 @@ textarea{
     background:#1d4ed8;
 }
 
-.btn-export{
+.btn-green{
     background:#16a34a;
     color:white;
-    width:auto;
-    padding:10px 18px;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
-    font-weight:bold;
 }
 
-.btn-export:hover{
+.btn-green:hover{
     background:#15803d;
+}
+
+.btn-red{
+    background:#dc2626;
+    color:white;
+    padding:8px 12px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
 }
 
 .status-grid{
@@ -228,10 +226,6 @@ tr:hover{
     cursor:pointer;
 }
 
-.return-btn:hover{
-    background:#15803d;
-}
-
 .pagination{
     display:flex;
     justify-content:center;
@@ -248,8 +242,16 @@ tr:hover{
     cursor:pointer;
 }
 
-.page-btn:disabled{
-    opacity:0.5;
+.maintenance-list{
+    margin-top:15px;
+}
+
+.maintenance-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px;
+    border-bottom:1px solid #e2e8f0;
 }
 
 .footer{
@@ -273,13 +275,14 @@ tr:hover{
 
 <div class="header">
     <h1>🏢 印鑑借用管理系統</h1>
-    <p>Firebase 雲端版</p>
 </div>
 
 <div class="layout">
 
+    <!-- 左側 -->
     <div>
 
+        <!-- 借用 -->
         <div class="panel">
 
             <h2>✍️ 借用登記</h2>
@@ -297,14 +300,7 @@ tr:hover{
             <div class="form-group">
                 <label>印鑑編號</label>
 
-                <select id="seal">
-                    <option value="">請選擇</option>
-                    <option>(1)</option>
-                    <option>(3)</option>
-                    <option>(4)</option>
-                    <option>(5)</option>
-                    <option>(6)</option>
-                </select>
+                <select id="seal"></select>
 
             </div>
 
@@ -319,6 +315,7 @@ tr:hover{
 
         </div>
 
+        <!-- 尚未歸還 -->
         <div class="panel">
 
             <h2>⚠ 尚未歸還專區</h2>
@@ -327,10 +324,30 @@ tr:hover{
 
         </div>
 
+        <!-- 印鑑維護 -->
+        <div class="panel">
+
+            <h2>🛠 印鑑維護</h2>
+
+            <div class="form-group">
+                <label>新增印鑑編號</label>
+                <input type="text" id="newSeal">
+            </div>
+
+            <button class="btn btn-green" onclick="addSeal()">
+                ➕ 新增印鑑
+            </button>
+
+            <div class="maintenance-list" id="sealListArea"></div>
+
+        </div>
+
     </div>
 
+    <!-- 右側 -->
     <div>
 
+        <!-- 狀態 -->
         <div class="panel">
 
             <h2>📦 即時狀態</h2>
@@ -339,6 +356,7 @@ tr:hover{
 
         </div>
 
+        <!-- 借用紀錄 -->
         <div class="panel">
 
             <h2>📋 借用紀錄</h2>
@@ -355,10 +373,7 @@ tr:hover{
 
                 <input type="date" id="endDate">
 
-                <button
-                    class="btn-export"
-                    onclick="exportExcel()"
-                >
+                <button class="btn-green" onclick="exportExcel()">
                     📊 匯出 Excel
                 </button>
 
@@ -371,7 +386,6 @@ tr:hover{
                     <thead>
 
                         <tr>
-
                             <th>印鑑</th>
                             <th>借用人</th>
                             <th>部門</th>
@@ -380,7 +394,6 @@ tr:hover{
                             <th>用途</th>
                             <th>狀態</th>
                             <th>操作</th>
-
                         </tr>
 
                     </thead>
@@ -412,7 +425,7 @@ tr:hover{
 </div>
 
 <div class="footer">
-    印鑑借用管理系統｜Firebase 雲端版
+    Firebase 雲端版｜印鑑借用管理系統
 </div>
 
 <script type="module">
@@ -426,6 +439,7 @@ import {
     addDoc,
     getDocs,
     updateDoc,
+    deleteDoc,
     doc
 }
 from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
@@ -446,9 +460,8 @@ const app = initializeApp(firebaseConfig);
 
 const db = getFirestore(app);
 
-const sealList = ["(1)", "(3)", "(4)", "(5)", "(6)"];
-
 let records = [];
+let sealList = [];
 
 const rowsPerPage = 10;
 let currentPage = 1;
@@ -460,19 +473,150 @@ function formatDate(date){
     if(date.seconds){
 
         return new Date(date.seconds * 1000)
-            .toLocaleString("zh-TW",{
-
-                year:'numeric',
-                month:'2-digit',
-                day:'2-digit',
-                hour:'2-digit',
-                minute:'2-digit'
-
-            });
+            .toLocaleString("zh-TW");
 
     }
 
     return new Date(date).toLocaleString("zh-TW");
+
+}
+
+async function loadSeals(){
+
+    const querySnapshot =
+        await getDocs(collection(db,"seals"));
+
+    sealList = [];
+
+    querySnapshot.forEach((docSnap)=>{
+
+        sealList.push({
+
+            id:docSnap.id,
+            ...docSnap.data()
+
+        });
+
+    });
+
+    renderSealDropdown();
+    renderSealMaintenance();
+    renderStatus();
+
+}
+
+function renderSealDropdown(){
+
+    const select =
+        document.getElementById("seal");
+
+    select.innerHTML =
+        `<option value="">請選擇</option>`;
+
+    sealList.forEach(seal=>{
+
+        select.innerHTML += `
+            <option value="${seal.name}">
+                ${seal.name}
+            </option>
+        `;
+
+    });
+
+}
+
+function renderSealMaintenance(){
+
+    const area =
+        document.getElementById("sealListArea");
+
+    area.innerHTML = "";
+
+    sealList.forEach(seal=>{
+
+        const div =
+            document.createElement("div");
+
+        div.className =
+            "maintenance-item";
+
+        div.innerHTML = `
+
+            <span>${seal.name}</span>
+
+            <button
+                class="btn-red"
+                onclick="deleteSeal('${seal.id}')"
+            >
+                刪除
+            </button>
+
+        `;
+
+        area.appendChild(div);
+
+    });
+
+}
+
+async function addSeal(){
+
+    const name =
+        document.getElementById("newSeal")
+        .value
+        .trim();
+
+    if(!name){
+
+        alert("請輸入印鑑編號");
+        return;
+    }
+
+    const exists =
+        sealList.find(s=>s.name===name);
+
+    if(exists){
+
+        alert("此印鑑已存在");
+        return;
+    }
+
+    await addDoc(collection(db,"seals"),{
+
+        name:name
+
+    });
+
+    document.getElementById("newSeal").value = "";
+
+    alert("新增成功");
+
+    loadSeals();
+
+}
+
+async function deleteSeal(id){
+
+    const target =
+        sealList.find(s=>s.id===id);
+
+    const borrowed =
+        records.find(r=>
+            r.seal===target.name &&
+            !r.returnTime
+        );
+
+    if(borrowed){
+
+        alert("此印鑑目前借出中，無法刪除");
+        return;
+    }
+
+    await deleteDoc(doc(db,"seals",id));
+
+    alert("已刪除");
+
+    loadSeals();
 
 }
 
@@ -507,10 +651,10 @@ async function borrowSeal(){
 
     await addDoc(collection(db,"sealRecords"),{
 
-        seal:seal,
-        borrower:borrower,
-        department:department,
-        purpose:purpose,
+        seal,
+        borrower,
+        department,
+        purpose,
         borrowTime:new Date(),
         returnTime:null
 
@@ -518,20 +662,13 @@ async function borrowSeal(){
 
     alert("借用成功");
 
-    document.getElementById("borrower").value = "";
-    document.getElementById("department").value = "";
-    document.getElementById("seal").value = "";
-    document.getElementById("purpose").value = "";
-
     loadRecords();
 
 }
 
 async function returnSeal(id){
 
-    const ref = doc(db,"sealRecords",id);
-
-    await updateDoc(ref,{
+    await updateDoc(doc(db,"sealRecords",id),{
 
         returnTime:new Date()
 
@@ -577,7 +714,10 @@ function renderStatus(){
     sealList.forEach(seal=>{
 
         const active =
-            records.find(r=>r.seal===seal && !r.returnTime);
+            records.find(r=>
+                r.seal===seal.name &&
+                !r.returnTime
+            );
 
         const card =
             document.createElement("div");
@@ -587,7 +727,7 @@ function renderStatus(){
 
         card.innerHTML = `
 
-            <h3>${seal}</h3>
+            <h3>${seal.name}</h3>
 
             <p>
                 ${active ? "🔴 借出中" : "🟢 可借用"}
@@ -627,26 +767,17 @@ function renderUnreturned(){
 
     activeList.forEach(r=>{
 
-        const borrowTime =
-            new Date(r.borrowTime.seconds * 1000);
-
-        const now = new Date();
-
-        const hours =
-            Math.floor((now - borrowTime)/(1000*60*60));
-
         const div =
             document.createElement("div");
 
-        div.className = "alert-box";
+        div.className =
+            "alert-box";
 
         div.innerHTML = `
 
             ⚠ 印鑑 ${r.seal} 尚未歸還<br>
 
-            借用人：${r.borrower}<br>
-
-            已借用 ${hours} 小時
+            借用人：${r.borrower}
 
         `;
 
@@ -721,12 +852,6 @@ function renderTable(){
     const totalPages =
         Math.ceil(filtered.length / rowsPerPage);
 
-    if(currentPage > totalPages){
-
-        currentPage = totalPages || 1;
-
-    }
-
     const start =
         (currentPage - 1) * rowsPerPage;
 
@@ -756,9 +881,7 @@ function renderTable(){
 
                 ${
                     r.returnTime
-
                     ? '<span class="badge badge-green">已歸還</span>'
-
                     : '<span class="badge badge-red">借出中</span>'
                 }
 
@@ -790,38 +913,49 @@ function renderTable(){
     });
 
     document.getElementById("pageInfo").innerText =
-
         `第 ${currentPage} / ${totalPages || 1} 頁`;
 
 }
 
 function exportExcel(){
 
-    const data = getFilteredRecords().map(r=>({
+    const data =
+        getFilteredRecords().map(r=>({
 
-        印鑑:r.seal,
-        借用人:r.borrower,
-        部門:r.department,
-        借用時間:formatDate(r.borrowTime),
-        歸還時間:formatDate(r.returnTime),
-        用途:r.purpose,
-        狀態:r.returnTime ? "已歸還" : "借出中"
+            印鑑:r.seal,
+            借用人:r.borrower,
+            部門:r.department,
+            借用時間:formatDate(r.borrowTime),
+            歸還時間:formatDate(r.returnTime),
+            用途:r.purpose,
+            狀態:r.returnTime ? "已歸還" : "借出中"
 
-    }));
+        }));
 
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws =
+        XLSX.utils.json_to_sheet(data);
 
-    const wb = XLSX.utils.book_new();
+    const wb =
+        XLSX.utils.book_new();
 
-    XLSX.utils.book_append_sheet(wb, ws, "印鑑借用紀錄");
+    XLSX.utils.book_append_sheet(
+        wb,
+        ws,
+        "印鑑借用紀錄"
+    );
 
-    XLSX.writeFile(wb, "印鑑借用紀錄.xlsx");
+    XLSX.writeFile(
+        wb,
+        "印鑑借用紀錄.xlsx"
+    );
 
 }
 
 window.borrowSeal = borrowSeal;
 window.returnSeal = returnSeal;
 window.exportExcel = exportExcel;
+window.addSeal = addSeal;
+window.deleteSeal = deleteSeal;
 
 document.getElementById("searchInput")
 .addEventListener("input",()=>{
@@ -879,6 +1013,7 @@ document.getElementById("nextBtn")
 
 });
 
+loadSeals();
 loadRecords();
 
 </script>
