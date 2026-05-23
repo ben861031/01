@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>印鑑借用管理系統</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>印鑑借用管理系統 - 主管專業版</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
 
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
 <style>
+
 *{
     margin:0;
     padding:0;
@@ -17,9 +20,9 @@
 }
 
 body{
-    background:#f4f7fb;
-    color:#333;
+    background:#f1f5f9;
     padding:20px;
+    color:#1e293b;
 }
 
 .header{
@@ -28,21 +31,21 @@ body{
     padding:25px;
     border-radius:18px;
     margin-bottom:20px;
-    box-shadow:0 8px 20px rgba(0,0,0,0.1);
+    box-shadow:0 10px 25px rgba(0,0,0,0.12);
 }
 
 .header h1{
-    font-size:30px;
-    margin-bottom:8px;
+    font-size:32px;
 }
 
 .header p{
+    margin-top:8px;
     opacity:0.9;
 }
 
-.container{
+.layout{
     display:grid;
-    grid-template-columns:350px 1fr;
+    grid-template-columns:360px 1fr;
     gap:20px;
 }
 
@@ -51,12 +54,12 @@ body{
     border-radius:18px;
     padding:20px;
     box-shadow:0 5px 15px rgba(0,0,0,0.06);
+    margin-bottom:20px;
 }
 
 .panel h2{
+    color:#1d4ed8;
     margin-bottom:18px;
-    font-size:22px;
-    color:#1e3a8a;
 }
 
 .form-group{
@@ -74,13 +77,13 @@ body{
 .form-group textarea{
     width:100%;
     padding:12px;
-    border:1px solid #dbe3ef;
     border-radius:10px;
+    border:1px solid #dbe4f0;
+    background:#f8fafc;
     font-size:15px;
-    background:#fafcff;
 }
 
-.form-group textarea{
+textarea{
     resize:vertical;
 }
 
@@ -104,19 +107,31 @@ body{
     background:#1d4ed8;
 }
 
+.btn-export{
+    background:#16a34a;
+    color:white;
+    width:auto;
+    padding:10px 18px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.btn-export:hover{
+    background:#15803d;
+}
+
 .status-grid{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
     gap:15px;
-    margin-bottom:20px;
 }
 
 .card{
     border-radius:16px;
     padding:18px;
     color:white;
-    position:relative;
-    overflow:hidden;
 }
 
 .available{
@@ -128,22 +143,38 @@ body{
 }
 
 .card h3{
-    font-size:24px;
+    font-size:26px;
     margin-bottom:10px;
 }
 
-.card .status{
+.card p{
     font-size:18px;
     font-weight:bold;
 }
 
-.card small{
-    display:block;
-    margin-top:8px;
-    opacity:0.9;
+.alert-box{
+    background:#fef2f2;
+    border:1px solid #fecaca;
+    color:#991b1b;
+    padding:14px;
+    border-radius:12px;
+    margin-bottom:12px;
 }
 
-.table-container{
+.filter-bar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:15px;
+}
+
+.filter-bar input{
+    padding:10px;
+    border-radius:10px;
+    border:1px solid #cbd5e1;
+}
+
+.table-wrap{
     overflow-x:auto;
 }
 
@@ -161,27 +192,13 @@ th{
 
 td{
     padding:12px;
-    border-bottom:1px solid #e5e7eb;
+    border-bottom:1px solid #e2e8f0;
     text-align:center;
     font-size:14px;
 }
 
 tr:hover{
     background:#f8fafc;
-}
-
-.return-btn{
-    border:none;
-    background:#16a34a;
-    color:white;
-    padding:8px 14px;
-    border-radius:8px;
-    cursor:pointer;
-    font-weight:bold;
-}
-
-.return-btn:hover{
-    background:#15803d;
 }
 
 .badge{
@@ -191,91 +208,151 @@ tr:hover{
     font-weight:bold;
 }
 
-.badge-green{
-    background:#dcfce7;
-    color:#166534;
-}
-
 .badge-red{
     background:#fee2e2;
     color:#991b1b;
 }
 
+.badge-green{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.return-btn{
+    border:none;
+    background:#16a34a;
+    color:white;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.return-btn:hover{
+    background:#15803d;
+}
+
+.pagination{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-top:20px;
+}
+
+.page-btn{
+    border:none;
+    background:#2563eb;
+    color:white;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.page-btn:disabled{
+    opacity:0.5;
+}
+
 .footer{
     margin-top:20px;
     text-align:center;
-    color:#666;
-    font-size:13px;
+    color:#64748b;
 }
 
-@media(max-width:900px){
-    .container{
+@media(max-width:1000px){
+
+    .layout{
         grid-template-columns:1fr;
     }
+
 }
+
 </style>
 </head>
+
 <body>
 
 <div class="header">
     <h1>🏢 印鑑借用管理系統</h1>
-    <p>公司大小章借用、歸還、紀錄管理平台</p>
+    <p>主管專業版 Professional Edition</p>
 </div>
 
-<div class="container">
+<div class="layout">
 
-    <!-- 左側 -->
-    <div class="panel">
-        <h2>✍️ 借用登記</h2>
-
-        <div class="form-group">
-            <label>借用人</label>
-            <input type="text" id="borrower" placeholder="請輸入姓名">
-        </div>
-
-        <div class="form-group">
-            <label>部門</label>
-            <input type="text" id="department" placeholder="請輸入部門">
-        </div>
-
-        <div class="form-group">
-            <label>印鑑編號</label>
-            <select id="sealNumber">
-                <option value="">請選擇</option>
-                <option value="(1)">(1)</option>
-                <option value="(3)">(3)</option>
-                <option value="(4)">(4)</option>
-                <option value="(5)">(5)</option>
-                <option value="(6)">(6)</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>用途</label>
-            <textarea id="purpose" rows="4" placeholder="請輸入用印用途"></textarea>
-        </div>
-
-        <button class="btn btn-primary" onclick="borrowSeal()">
-            📌 確認借用
-        </button>
-    </div>
-
-    <!-- 右側 -->
     <div>
 
-        <!-- 狀態 -->
         <div class="panel">
-            <h2>📦 印鑑即時狀態</h2>
+            <h2>✍️ 借用登記</h2>
+
+            <div class="form-group">
+                <label>借用人</label>
+                <input type="text" id="borrower">
+            </div>
+
+            <div class="form-group">
+                <label>部門</label>
+                <input type="text" id="department">
+            </div>
+
+            <div class="form-group">
+                <label>印鑑編號</label>
+                <select id="seal">
+                    <option value="">請選擇</option>
+                    <option>(1)</option>
+                    <option>(3)</option>
+                    <option>(4)</option>
+                    <option>(5)</option>
+                    <option>(6)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>用途</label>
+                <textarea id="purpose" rows="4"></textarea>
+            </div>
+
+            <button class="btn btn-primary" onclick="borrowSeal()">
+                📌 確認借用
+            </button>
+
+        </div>
+
+        <div class="panel">
+            <h2>⚠ 尚未歸還專區</h2>
+
+            <div id="unreturnedArea"></div>
+        </div>
+
+    </div>
+
+    <div>
+
+        <div class="panel">
+            <h2>📦 即時狀態</h2>
 
             <div class="status-grid" id="statusGrid"></div>
         </div>
 
-        <!-- 紀錄 -->
         <div class="panel">
+
             <h2>📋 借用紀錄</h2>
 
-            <div class="table-container">
+            <div class="filter-bar">
+
+                <input type="text" id="searchInput" placeholder="搜尋借用人 / 部門 / 用途">
+
+                <input type="date" id="startDate">
+
+                <input type="date" id="endDate">
+
+                <button class="btn-export" onclick="exportExcel()">
+                    📊 匯出 Excel
+                </button>
+
+            </div>
+
+            <div class="table-wrap">
+
                 <table>
+
                     <thead>
                         <tr>
                             <th>印鑑</th>
@@ -290,8 +367,21 @@ tr:hover{
                     </thead>
 
                     <tbody id="recordTable"></tbody>
+
                 </table>
+
             </div>
+
+            <div class="pagination">
+
+                <button class="page-btn" id="prevBtn">上一頁</button>
+
+                <span id="pageInfo"></span>
+
+                <button class="page-btn" id="nextBtn">下一頁</button>
+
+            </div>
+
         </div>
 
     </div>
@@ -299,102 +389,32 @@ tr:hover{
 </div>
 
 <div class="footer">
-    印鑑借用管理系統 Professional Edition
+    印鑑借用管理系統｜主管專業版
 </div>
 
 <script>
+
 const sealList = ["(1)", "(3)", "(4)", "(5)", "(6)"];
 
 let records = JSON.parse(localStorage.getItem("sealRecords")) || [];
+
+const rowsPerPage = 10;
+let currentPage = 1;
 
 function saveData(){
     localStorage.setItem("sealRecords", JSON.stringify(records));
 }
 
 function formatDate(date){
-    return new Date(date).toLocaleString("zh-TW", {
+
+    if(!date) return "-";
+
+    return new Date(date).toLocaleString("zh-TW",{
         year:'numeric',
         month:'2-digit',
         day:'2-digit',
         hour:'2-digit',
         minute:'2-digit'
-    });
-}
-
-function renderStatus(){
-
-    const grid = document.getElementById("statusGrid");
-    grid.innerHTML = "";
-
-    sealList.forEach(seal=>{
-
-        const active = records.find(r=>r.seal===seal && !r.returnTime);
-
-        const card = document.createElement("div");
-
-        if(active){
-
-            card.className = "card borrowed";
-
-            card.innerHTML = `
-                <h3>${seal}</h3>
-                <div class="status">🔴 借出中</div>
-                <small>借用人：${active.borrower}</small>
-            `;
-
-        }else{
-
-            card.className = "card available";
-
-            card.innerHTML = `
-                <h3>${seal}</h3>
-                <div class="status">🟢 可借用</div>
-                <small>目前可使用</small>
-            `;
-        }
-
-        grid.appendChild(card);
-
-    });
-
-}
-
-function renderTable(){
-
-    const table = document.getElementById("recordTable");
-    table.innerHTML = "";
-
-    records.slice().reverse().forEach((r,index)=>{
-
-        const tr = document.createElement("tr");
-
-        tr.innerHTML = `
-            <td>${r.seal}</td>
-            <td>${r.borrower}</td>
-            <td>${r.department}</td>
-            <td>${formatDate(r.borrowTime)}</td>
-            <td>${r.returnTime ? formatDate(r.returnTime) : '-'}</td>
-            <td>${r.purpose}</td>
-
-            <td>
-                ${
-                    r.returnTime
-                    ? '<span class="badge badge-green">已歸還</span>'
-                    : '<span class="badge badge-red">借出中</span>'
-                }
-            </td>
-
-            <td>
-                ${
-                    !r.returnTime
-                    ? `<button class="return-btn" onclick="returnSeal(${records.indexOf(r)})">歸還</button>`
-                    : '-'
-                }
-            </td>
-        `;
-
-        table.appendChild(tr);
-
     });
 
 }
@@ -403,7 +423,7 @@ function borrowSeal(){
 
     const borrower = document.getElementById("borrower").value.trim();
     const department = document.getElementById("department").value.trim();
-    const seal = document.getElementById("sealNumber").value;
+    const seal = document.getElementById("seal").value;
     const purpose = document.getElementById("purpose").value.trim();
 
     if(!borrower || !seal || !purpose){
@@ -412,9 +432,9 @@ function borrowSeal(){
         return;
     }
 
-    const alreadyBorrowed = records.find(r=>r.seal===seal && !r.returnTime);
+    const active = records.find(r=>r.seal===seal && !r.returnTime);
 
-    if(alreadyBorrowed){
+    if(active){
 
         alert(`印鑑 ${seal} 目前借出中`);
         return;
@@ -431,13 +451,7 @@ function borrowSeal(){
 
     saveData();
 
-    renderStatus();
-    renderTable();
-
-    document.getElementById("borrower").value = "";
-    document.getElementById("department").value = "";
-    document.getElementById("sealNumber").value = "";
-    document.getElementById("purpose").value = "";
+    renderAll();
 
     alert("借用成功");
 
@@ -445,23 +459,260 @@ function borrowSeal(){
 
 function returnSeal(index){
 
-    if(confirm("確認歸還此印鑑？")){
+    records[index].returnTime = new Date();
 
-        records[index].returnTime = new Date();
+    saveData();
 
-        saveData();
+    renderAll();
 
-        renderStatus();
-        renderTable();
-
-        alert("已完成歸還");
-
-    }
+    alert("已完成歸還");
 
 }
 
-renderStatus();
-renderTable();
+function renderStatus(){
+
+    const grid = document.getElementById("statusGrid");
+
+    grid.innerHTML = "";
+
+    sealList.forEach(seal=>{
+
+        const active = records.find(r=>r.seal===seal && !r.returnTime);
+
+        const card = document.createElement("div");
+
+        card.className = active ? "card borrowed" : "card available";
+
+        card.innerHTML = `
+            <h3>${seal}</h3>
+            <p>${active ? "🔴 借出中" : "🟢 可借用"}</p>
+            <small>
+                ${active ? `借用人：${active.borrower}` : "目前可使用"}
+            </small>
+        `;
+
+        grid.appendChild(card);
+
+    });
+
+}
+
+function renderUnreturned(){
+
+    const area = document.getElementById("unreturnedArea");
+
+    area.innerHTML = "";
+
+    const activeList = records.filter(r=>!r.returnTime);
+
+    if(activeList.length===0){
+
+        area.innerHTML = "目前無未歸還紀錄";
+        return;
+    }
+
+    activeList.forEach(r=>{
+
+        const borrowTime = new Date(r.borrowTime);
+
+        const now = new Date();
+
+        const hours = Math.floor((now - borrowTime)/(1000*60*60));
+
+        const div = document.createElement("div");
+
+        div.className = "alert-box";
+
+        div.innerHTML = `
+            ⚠ 印鑑 ${r.seal} 尚未歸還<br>
+            借用人：${r.borrower}<br>
+            已借用 ${hours} 小時
+        `;
+
+        area.appendChild(div);
+
+    });
+
+}
+
+function getFilteredRecords(){
+
+    const keyword = document.getElementById("searchInput").value.toLowerCase();
+
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
+
+    return records.filter(r=>{
+
+        const matchKeyword =
+            r.borrower.toLowerCase().includes(keyword) ||
+            r.department.toLowerCase().includes(keyword) ||
+            r.purpose.toLowerCase().includes(keyword);
+
+        const borrowDate = new Date(r.borrowTime);
+
+        let matchDate = true;
+
+        if(startDate){
+
+            matchDate = borrowDate >= new Date(startDate);
+
+        }
+
+        if(endDate){
+
+            const end = new Date(endDate);
+            end.setHours(23,59,59);
+
+            matchDate = matchDate && borrowDate <= end;
+        }
+
+        return matchKeyword && matchDate;
+
+    });
+
+}
+
+function renderTable(){
+
+    const table = document.getElementById("recordTable");
+
+    table.innerHTML = "";
+
+    const filtered = getFilteredRecords().reverse();
+
+    const totalPages = Math.ceil(filtered.length / rowsPerPage);
+
+    if(currentPage > totalPages){
+        currentPage = totalPages || 1;
+    }
+
+    const start = (currentPage - 1) * rowsPerPage;
+
+    const pageData = filtered.slice(start, start + rowsPerPage);
+
+    pageData.forEach(r=>{
+
+        const originalIndex = records.indexOf(r);
+
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>${r.seal}</td>
+            <td>${r.borrower}</td>
+            <td>${r.department}</td>
+            <td>${formatDate(r.borrowTime)}</td>
+            <td>${formatDate(r.returnTime)}</td>
+            <td>${r.purpose}</td>
+
+            <td>
+                ${
+                    r.returnTime
+                    ? '<span class="badge badge-green">已歸還</span>'
+                    : '<span class="badge badge-red">借出中</span>'
+                }
+            </td>
+
+            <td>
+                ${
+                    !r.returnTime
+                    ? `<button class="return-btn" onclick="returnSeal(${originalIndex})">歸還</button>`
+                    : '-'
+                }
+            </td>
+        `;
+
+        table.appendChild(tr);
+
+    });
+
+    document.getElementById("pageInfo").innerText =
+        `第 ${currentPage} / ${totalPages || 1} 頁`;
+
+    document.getElementById("prevBtn").disabled = currentPage===1;
+    document.getElementById("nextBtn").disabled = currentPage===totalPages || totalPages===0;
+
+}
+
+function exportExcel(){
+
+    const data = getFilteredRecords().map(r=>({
+
+        印鑑:r.seal,
+        借用人:r.borrower,
+        部門:r.department,
+        借用時間:formatDate(r.borrowTime),
+        歸還時間:formatDate(r.returnTime),
+        用途:r.purpose,
+        狀態:r.returnTime ? "已歸還" : "借出中"
+
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+
+    const wb = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(wb, ws, "印鑑借用紀錄");
+
+    XLSX.writeFile(wb, "印鑑借用紀錄.xlsx");
+
+}
+
+function renderAll(){
+
+    renderStatus();
+    renderTable();
+    renderUnreturned();
+
+}
+
+document.getElementById("searchInput").addEventListener("input",()=>{
+
+    currentPage = 1;
+    renderTable();
+
+});
+
+document.getElementById("startDate").addEventListener("change",()=>{
+
+    currentPage = 1;
+    renderTable();
+
+});
+
+document.getElementById("endDate").addEventListener("change",()=>{
+
+    currentPage = 1;
+    renderTable();
+
+});
+
+document.getElementById("prevBtn").addEventListener("click",()=>{
+
+    if(currentPage>1){
+
+        currentPage--;
+        renderTable();
+
+    }
+
+});
+
+document.getElementById("nextBtn").addEventListener("click",()=>{
+
+    const totalPages = Math.ceil(getFilteredRecords().length / rowsPerPage);
+
+    if(currentPage < totalPages){
+
+        currentPage++;
+        renderTable();
+
+    }
+
+});
+
+renderAll();
+
 </script>
 
 </body>
