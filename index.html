@@ -1,430 +1,77 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="module">
 
-<title>印鑑借用管理系統 - 主管專業版</title>
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
-
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
-<style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Noto Sans TC',sans-serif;
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    updateDoc,
+    doc
 }
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-body{
-    background:#f1f5f9;
-    padding:20px;
-    color:#1e293b;
-}
+const firebaseConfig = {
 
-.header{
-    background:linear-gradient(135deg,#1d4ed8,#2563eb);
-    color:white;
-    padding:25px;
-    border-radius:18px;
-    margin-bottom:20px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.12);
-}
+    apiKey: "AIzaSyCzvPwTbxc_Lg7peKRgP0zUrlmI6kkE0b4",
+    authDomain: "seal-management-68465.firebaseapp.com",
+    projectId: "seal-management-68465",
+    storageBucket: "seal-management-68465.firebasestorage.app",
+    messagingSenderId: "933578260928",
+    appId: "1:933578260928:web:4c5f41252fd786e1bf0825",
+    measurementId: "G-7RKPNF7BK9"
 
-.header h1{
-    font-size:32px;
-}
+};
 
-.header p{
-    margin-top:8px;
-    opacity:0.9;
-}
+const app = initializeApp(firebaseConfig);
 
-.layout{
-    display:grid;
-    grid-template-columns:360px 1fr;
-    gap:20px;
-}
-
-.panel{
-    background:white;
-    border-radius:18px;
-    padding:20px;
-    box-shadow:0 5px 15px rgba(0,0,0,0.06);
-    margin-bottom:20px;
-}
-
-.panel h2{
-    color:#1d4ed8;
-    margin-bottom:18px;
-}
-
-.form-group{
-    margin-bottom:15px;
-}
-
-.form-group label{
-    display:block;
-    margin-bottom:6px;
-    font-weight:600;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea{
-    width:100%;
-    padding:12px;
-    border-radius:10px;
-    border:1px solid #dbe4f0;
-    background:#f8fafc;
-    font-size:15px;
-}
-
-textarea{
-    resize:vertical;
-}
-
-.btn{
-    width:100%;
-    border:none;
-    padding:14px;
-    border-radius:12px;
-    font-size:16px;
-    font-weight:bold;
-    cursor:pointer;
-    transition:0.2s;
-}
-
-.btn-primary{
-    background:#2563eb;
-    color:white;
-}
-
-.btn-primary:hover{
-    background:#1d4ed8;
-}
-
-.btn-export{
-    background:#16a34a;
-    color:white;
-    width:auto;
-    padding:10px 18px;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
-    font-weight:bold;
-}
-
-.btn-export:hover{
-    background:#15803d;
-}
-
-.status-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:15px;
-}
-
-.card{
-    border-radius:16px;
-    padding:18px;
-    color:white;
-}
-
-.available{
-    background:linear-gradient(135deg,#16a34a,#22c55e);
-}
-
-.borrowed{
-    background:linear-gradient(135deg,#dc2626,#ef4444);
-}
-
-.card h3{
-    font-size:26px;
-    margin-bottom:10px;
-}
-
-.card p{
-    font-size:18px;
-    font-weight:bold;
-}
-
-.alert-box{
-    background:#fef2f2;
-    border:1px solid #fecaca;
-    color:#991b1b;
-    padding:14px;
-    border-radius:12px;
-    margin-bottom:12px;
-}
-
-.filter-bar{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    margin-bottom:15px;
-}
-
-.filter-bar input{
-    padding:10px;
-    border-radius:10px;
-    border:1px solid #cbd5e1;
-}
-
-.table-wrap{
-    overflow-x:auto;
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-th{
-    background:#1e3a8a;
-    color:white;
-    padding:14px;
-    font-size:14px;
-}
-
-td{
-    padding:12px;
-    border-bottom:1px solid #e2e8f0;
-    text-align:center;
-    font-size:14px;
-}
-
-tr:hover{
-    background:#f8fafc;
-}
-
-.badge{
-    padding:5px 10px;
-    border-radius:999px;
-    font-size:12px;
-    font-weight:bold;
-}
-
-.badge-red{
-    background:#fee2e2;
-    color:#991b1b;
-}
-
-.badge-green{
-    background:#dcfce7;
-    color:#166534;
-}
-
-.return-btn{
-    border:none;
-    background:#16a34a;
-    color:white;
-    padding:8px 14px;
-    border-radius:8px;
-    cursor:pointer;
-}
-
-.return-btn:hover{
-    background:#15803d;
-}
-
-.pagination{
-    display:flex;
-    justify-content:center;
-    gap:10px;
-    margin-top:20px;
-}
-
-.page-btn{
-    border:none;
-    background:#2563eb;
-    color:white;
-    padding:8px 14px;
-    border-radius:8px;
-    cursor:pointer;
-}
-
-.page-btn:disabled{
-    opacity:0.5;
-}
-
-.footer{
-    margin-top:20px;
-    text-align:center;
-    color:#64748b;
-}
-
-@media(max-width:1000px){
-
-    .layout{
-        grid-template-columns:1fr;
-    }
-
-}
-
-</style>
-</head>
-
-<body>
-
-<div class="header">
-    <h1>🏢 印鑑借用管理系統</h1>
-    <p>主管專業版 Professional Edition</p>
-</div>
-
-<div class="layout">
-
-    <div>
-
-        <div class="panel">
-            <h2>✍️ 借用登記</h2>
-
-            <div class="form-group">
-                <label>借用人</label>
-                <input type="text" id="borrower">
-            </div>
-
-            <div class="form-group">
-                <label>部門</label>
-                <input type="text" id="department">
-            </div>
-
-            <div class="form-group">
-                <label>印鑑編號</label>
-                <select id="seal">
-                    <option value="">請選擇</option>
-                    <option>(1)</option>
-                    <option>(3)</option>
-                    <option>(4)</option>
-                    <option>(5)</option>
-                    <option>(6)</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>用途</label>
-                <textarea id="purpose" rows="4"></textarea>
-            </div>
-
-            <button class="btn btn-primary" onclick="borrowSeal()">
-                📌 確認借用
-            </button>
-
-        </div>
-
-        <div class="panel">
-            <h2>⚠ 尚未歸還專區</h2>
-
-            <div id="unreturnedArea"></div>
-        </div>
-
-    </div>
-
-    <div>
-
-        <div class="panel">
-            <h2>📦 即時狀態</h2>
-
-            <div class="status-grid" id="statusGrid"></div>
-        </div>
-
-        <div class="panel">
-
-            <h2>📋 借用紀錄</h2>
-
-            <div class="filter-bar">
-
-                <input type="text" id="searchInput" placeholder="搜尋借用人 / 部門 / 用途">
-
-                <input type="date" id="startDate">
-
-                <input type="date" id="endDate">
-
-                <button class="btn-export" onclick="exportExcel()">
-                    📊 匯出 Excel
-                </button>
-
-            </div>
-
-            <div class="table-wrap">
-
-                <table>
-
-                    <thead>
-                        <tr>
-                            <th>印鑑</th>
-                            <th>借用人</th>
-                            <th>部門</th>
-                            <th>借用時間</th>
-                            <th>歸還時間</th>
-                            <th>用途</th>
-                            <th>狀態</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="recordTable"></tbody>
-
-                </table>
-
-            </div>
-
-            <div class="pagination">
-
-                <button class="page-btn" id="prevBtn">上一頁</button>
-
-                <span id="pageInfo"></span>
-
-                <button class="page-btn" id="nextBtn">下一頁</button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<div class="footer">
-    印鑑借用管理系統｜主管專業版
-</div>
-
-<script>
+const db = getFirestore(app);
 
 const sealList = ["(1)", "(3)", "(4)", "(5)", "(6)"];
 
-let records = JSON.parse(localStorage.getItem("sealRecords")) || [];
+let records = [];
 
 const rowsPerPage = 10;
 let currentPage = 1;
-
-function saveData(){
-    localStorage.setItem("sealRecords", JSON.stringify(records));
-}
 
 function formatDate(date){
 
     if(!date) return "-";
 
-    return new Date(date).toLocaleString("zh-TW",{
-        year:'numeric',
-        month:'2-digit',
-        day:'2-digit',
-        hour:'2-digit',
-        minute:'2-digit'
-    });
+    if(date.seconds){
+
+        return new Date(date.seconds * 1000)
+            .toLocaleString("zh-TW",{
+
+                year:'numeric',
+                month:'2-digit',
+                day:'2-digit',
+                hour:'2-digit',
+                minute:'2-digit'
+
+            });
+
+    }
+
+    return new Date(date).toLocaleString("zh-TW");
 
 }
 
-function borrowSeal(){
+async function borrowSeal(){
 
-    const borrower = document.getElementById("borrower").value.trim();
-    const department = document.getElementById("department").value.trim();
-    const seal = document.getElementById("seal").value;
-    const purpose = document.getElementById("purpose").value.trim();
+    const borrower =
+        document.getElementById("borrower").value.trim();
+
+    const department =
+        document.getElementById("department").value.trim();
+
+    const seal =
+        document.getElementById("seal").value;
+
+    const purpose =
+        document.getElementById("purpose").value.trim();
 
     if(!borrower || !seal || !purpose){
 
@@ -432,63 +79,111 @@ function borrowSeal(){
         return;
     }
 
-    const active = records.find(r=>r.seal===seal && !r.returnTime);
+    const alreadyBorrowed =
+        records.find(r=>r.seal===seal && !r.returnTime);
 
-    if(active){
+    if(alreadyBorrowed){
 
         alert(`印鑑 ${seal} 目前借出中`);
         return;
     }
 
-    records.push({
-        seal,
-        borrower,
-        department,
-        purpose,
+    await addDoc(collection(db,"sealRecords"),{
+
+        seal:seal,
+        borrower:borrower,
+        department:department,
+        purpose:purpose,
         borrowTime:new Date(),
         returnTime:null
+
     });
-
-    saveData();
-
-    renderAll();
 
     alert("借用成功");
 
+    document.getElementById("borrower").value = "";
+    document.getElementById("department").value = "";
+    document.getElementById("seal").value = "";
+    document.getElementById("purpose").value = "";
+
+    loadRecords();
+
 }
 
-function returnSeal(index){
+async function returnSeal(id){
 
-    records[index].returnTime = new Date();
+    const ref = doc(db,"sealRecords",id);
 
-    saveData();
+    await updateDoc(ref,{
 
-    renderAll();
+        returnTime:new Date()
+
+    });
 
     alert("已完成歸還");
+
+    loadRecords();
+
+}
+
+async function loadRecords(){
+
+    const querySnapshot =
+        await getDocs(collection(db,"sealRecords"));
+
+    records = [];
+
+    querySnapshot.forEach((docSnap)=>{
+
+        records.push({
+
+            id:docSnap.id,
+            ...docSnap.data()
+
+        });
+
+    });
+
+    renderStatus();
+    renderTable();
+    renderUnreturned();
 
 }
 
 function renderStatus(){
 
-    const grid = document.getElementById("statusGrid");
+    const grid =
+        document.getElementById("statusGrid");
 
     grid.innerHTML = "";
 
     sealList.forEach(seal=>{
 
-        const active = records.find(r=>r.seal===seal && !r.returnTime);
+        const active =
+            records.find(r=>r.seal===seal && !r.returnTime);
 
-        const card = document.createElement("div");
+        const card =
+            document.createElement("div");
 
-        card.className = active ? "card borrowed" : "card available";
+        card.className =
+            active ? "card borrowed" : "card available";
 
         card.innerHTML = `
+
             <h3>${seal}</h3>
-            <p>${active ? "🔴 借出中" : "🟢 可借用"}</p>
+
+            <p>
+                ${active ? "🔴 借出中" : "🟢 可借用"}
+            </p>
+
             <small>
-                ${active ? `借用人：${active.borrower}` : "目前可使用"}
+                ${
+                    active
+                    ? `借用人：${active.borrower}`
+                    : "目前可使用"
+                }
             </small>
+
         `;
 
         grid.appendChild(card);
@@ -499,11 +194,13 @@ function renderStatus(){
 
 function renderUnreturned(){
 
-    const area = document.getElementById("unreturnedArea");
+    const area =
+        document.getElementById("unreturnedArea");
 
     area.innerHTML = "";
 
-    const activeList = records.filter(r=>!r.returnTime);
+    const activeList =
+        records.filter(r=>!r.returnTime);
 
     if(activeList.length===0){
 
@@ -513,20 +210,27 @@ function renderUnreturned(){
 
     activeList.forEach(r=>{
 
-        const borrowTime = new Date(r.borrowTime);
+        const borrowTime =
+            new Date(r.borrowTime.seconds * 1000);
 
         const now = new Date();
 
-        const hours = Math.floor((now - borrowTime)/(1000*60*60));
+        const hours =
+            Math.floor((now - borrowTime)/(1000*60*60));
 
-        const div = document.createElement("div");
+        const div =
+            document.createElement("div");
 
         div.className = "alert-box";
 
         div.innerHTML = `
+
             ⚠ 印鑑 ${r.seal} 尚未歸還<br>
+
             借用人：${r.borrower}<br>
+
             已借用 ${hours} 小時
+
         `;
 
         area.appendChild(div);
@@ -537,34 +241,48 @@ function renderUnreturned(){
 
 function getFilteredRecords(){
 
-    const keyword = document.getElementById("searchInput").value.toLowerCase();
+    const keyword =
+        document.getElementById("searchInput")
+        .value
+        .toLowerCase();
 
-    const startDate = document.getElementById("startDate").value;
-    const endDate = document.getElementById("endDate").value;
+    const startDate =
+        document.getElementById("startDate").value;
+
+    const endDate =
+        document.getElementById("endDate").value;
 
     return records.filter(r=>{
 
         const matchKeyword =
+
             r.borrower.toLowerCase().includes(keyword) ||
+
             r.department.toLowerCase().includes(keyword) ||
+
             r.purpose.toLowerCase().includes(keyword);
 
-        const borrowDate = new Date(r.borrowTime);
+        const borrowDate =
+            new Date(r.borrowTime.seconds * 1000);
 
         let matchDate = true;
 
         if(startDate){
 
-            matchDate = borrowDate >= new Date(startDate);
+            matchDate =
+                borrowDate >= new Date(startDate);
 
         }
 
         if(endDate){
 
             const end = new Date(endDate);
+
             end.setHours(23,59,59);
 
-            matchDate = matchDate && borrowDate <= end;
+            matchDate =
+                matchDate && borrowDate <= end;
+
         }
 
         return matchKeyword && matchDate;
@@ -575,51 +293,79 @@ function getFilteredRecords(){
 
 function renderTable(){
 
-    const table = document.getElementById("recordTable");
+    const table =
+        document.getElementById("recordTable");
 
     table.innerHTML = "";
 
-    const filtered = getFilteredRecords().reverse();
+    const filtered =
+        getFilteredRecords().reverse();
 
-    const totalPages = Math.ceil(filtered.length / rowsPerPage);
+    const totalPages =
+        Math.ceil(filtered.length / rowsPerPage);
 
     if(currentPage > totalPages){
+
         currentPage = totalPages || 1;
+
     }
 
-    const start = (currentPage - 1) * rowsPerPage;
+    const start =
+        (currentPage - 1) * rowsPerPage;
 
-    const pageData = filtered.slice(start, start + rowsPerPage);
+    const pageData =
+        filtered.slice(start, start + rowsPerPage);
 
     pageData.forEach(r=>{
 
-        const originalIndex = records.indexOf(r);
-
-        const tr = document.createElement("tr");
+        const tr =
+            document.createElement("tr");
 
         tr.innerHTML = `
+
             <td>${r.seal}</td>
+
             <td>${r.borrower}</td>
+
             <td>${r.department}</td>
+
             <td>${formatDate(r.borrowTime)}</td>
+
             <td>${formatDate(r.returnTime)}</td>
+
             <td>${r.purpose}</td>
 
             <td>
+
                 ${
                     r.returnTime
+
                     ? '<span class="badge badge-green">已歸還</span>'
+
                     : '<span class="badge badge-red">借出中</span>'
                 }
+
             </td>
 
             <td>
+
                 ${
                     !r.returnTime
-                    ? `<button class="return-btn" onclick="returnSeal(${originalIndex})">歸還</button>`
+
+                    ? `
+                        <button
+                            class="return-btn"
+                            onclick="returnSeal('${r.id}')"
+                        >
+                            歸還
+                        </button>
+                    `
+
                     : '-'
                 }
+
             </td>
+
         `;
 
         table.appendChild(tr);
@@ -627,93 +373,70 @@ function renderTable(){
     });
 
     document.getElementById("pageInfo").innerText =
+
         `第 ${currentPage} / ${totalPages || 1} 頁`;
 
-    document.getElementById("prevBtn").disabled = currentPage===1;
-    document.getElementById("nextBtn").disabled = currentPage===totalPages || totalPages===0;
-
 }
 
-function exportExcel(){
+window.borrowSeal = borrowSeal;
+window.returnSeal = returnSeal;
 
-    const data = getFilteredRecords().map(r=>({
-
-        印鑑:r.seal,
-        借用人:r.borrower,
-        部門:r.department,
-        借用時間:formatDate(r.borrowTime),
-        歸還時間:formatDate(r.returnTime),
-        用途:r.purpose,
-        狀態:r.returnTime ? "已歸還" : "借出中"
-
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(data);
-
-    const wb = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(wb, ws, "印鑑借用紀錄");
-
-    XLSX.writeFile(wb, "印鑑借用紀錄.xlsx");
-
-}
-
-function renderAll(){
-
-    renderStatus();
-    renderTable();
-    renderUnreturned();
-
-}
-
-document.getElementById("searchInput").addEventListener("input",()=>{
+document.getElementById("searchInput")
+.addEventListener("input",()=>{
 
     currentPage = 1;
+
     renderTable();
 
 });
 
-document.getElementById("startDate").addEventListener("change",()=>{
+document.getElementById("startDate")
+.addEventListener("change",()=>{
 
     currentPage = 1;
+
     renderTable();
 
 });
 
-document.getElementById("endDate").addEventListener("change",()=>{
+document.getElementById("endDate")
+.addEventListener("change",()=>{
 
     currentPage = 1;
+
     renderTable();
 
 });
 
-document.getElementById("prevBtn").addEventListener("click",()=>{
+document.getElementById("prevBtn")
+.addEventListener("click",()=>{
 
     if(currentPage>1){
 
         currentPage--;
+
         renderTable();
 
     }
 
 });
 
-document.getElementById("nextBtn").addEventListener("click",()=>{
+document.getElementById("nextBtn")
+.addEventListener("click",()=>{
 
-    const totalPages = Math.ceil(getFilteredRecords().length / rowsPerPage);
+    const totalPages =
+        Math.ceil(getFilteredRecords().length / rowsPerPage);
 
     if(currentPage < totalPages){
 
         currentPage++;
+
         renderTable();
 
     }
 
 });
 
-renderAll();
+loadRecords();
 
 </script>
-
-</body>
-</html>
