@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>印鑑借用管理系統</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Noto Sans TC',sans-serif;
+}
+
+body{
+    background:#f4f7fb;
+    color:#333;
+    padding:20px;
+}
+
+.header{
+    background:linear-gradient(135deg,#1d4ed8,#2563eb);
+    color:white;
+    padding:25px;
+    border-radius:18px;
+    margin-bottom:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.1);
+}
+
+.header h1{
+    font-size:30px;
+    margin-bottom:8px;
+}
+
+.header p{
+    opacity:0.9;
+}
+
+.container{
+    display:grid;
+    grid-template-columns:350px 1fr;
+    gap:20px;
+}
+
+.panel{
+    background:white;
+    border-radius:18px;
+    padding:20px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.06);
+}
+
+.panel h2{
+    margin-bottom:18px;
+    font-size:22px;
+    color:#1e3a8a;
+}
+
+.form-group{
+    margin-bottom:15px;
+}
+
+.form-group label{
+    display:block;
+    margin-bottom:6px;
+    font-weight:600;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea{
+    width:100%;
+    padding:12px;
+    border:1px solid #dbe3ef;
+    border-radius:10px;
+    font-size:15px;
+    background:#fafcff;
+}
+
+.form-group textarea{
+    resize:vertical;
+}
+
+.btn{
+    width:100%;
+    border:none;
+    padding:14px;
+    border-radius:12px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.btn-primary{
+    background:#2563eb;
+    color:white;
+}
+
+.btn-primary:hover{
+    background:#1d4ed8;
+}
+
+.status-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.card{
+    border-radius:16px;
+    padding:18px;
+    color:white;
+    position:relative;
+    overflow:hidden;
+}
+
+.available{
+    background:linear-gradient(135deg,#16a34a,#22c55e);
+}
+
+.borrowed{
+    background:linear-gradient(135deg,#dc2626,#ef4444);
+}
+
+.card h3{
+    font-size:24px;
+    margin-bottom:10px;
+}
+
+.card .status{
+    font-size:18px;
+    font-weight:bold;
+}
+
+.card small{
+    display:block;
+    margin-top:8px;
+    opacity:0.9;
+}
+
+.table-container{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    background:#1e3a8a;
+    color:white;
+    padding:14px;
+    font-size:14px;
+}
+
+td{
+    padding:12px;
+    border-bottom:1px solid #e5e7eb;
+    text-align:center;
+    font-size:14px;
+}
+
+tr:hover{
+    background:#f8fafc;
+}
+
+.return-btn{
+    border:none;
+    background:#16a34a;
+    color:white;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.return-btn:hover{
+    background:#15803d;
+}
+
+.badge{
+    padding:5px 10px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.badge-green{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.badge-red{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.footer{
+    margin-top:20px;
+    text-align:center;
+    color:#666;
+    font-size:13px;
+}
+
+@media(max-width:900px){
+    .container{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🏢 印鑑借用管理系統</h1>
+    <p>公司大小章借用、歸還、紀錄管理平台</p>
+</div>
+
+<div class="container">
+
+    <!-- 左側 -->
+    <div class="panel">
+        <h2>✍️ 借用登記</h2>
+
+        <div class="form-group">
+            <label>借用人</label>
+            <input type="text" id="borrower" placeholder="請輸入姓名">
+        </div>
+
+        <div class="form-group">
+            <label>部門</label>
+            <input type="text" id="department" placeholder="請輸入部門">
+        </div>
+
+        <div class="form-group">
+            <label>印鑑編號</label>
+            <select id="sealNumber">
+                <option value="">請選擇</option>
+                <option value="(1)">(1)</option>
+                <option value="(3)">(3)</option>
+                <option value="(4)">(4)</option>
+                <option value="(5)">(5)</option>
+                <option value="(6)">(6)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>用途</label>
+            <textarea id="purpose" rows="4" placeholder="請輸入用印用途"></textarea>
+        </div>
+
+        <button class="btn btn-primary" onclick="borrowSeal()">
+            📌 確認借用
+        </button>
+    </div>
+
+    <!-- 右側 -->
+    <div>
+
+        <!-- 狀態 -->
+        <div class="panel">
+            <h2>📦 印鑑即時狀態</h2>
+
+            <div class="status-grid" id="statusGrid"></div>
+        </div>
+
+        <!-- 紀錄 -->
+        <div class="panel">
+            <h2>📋 借用紀錄</h2>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>印鑑</th>
+                            <th>借用人</th>
+                            <th>部門</th>
+                            <th>借用時間</th>
+                            <th>歸還時間</th>
+                            <th>用途</th>
+                            <th>狀態</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="recordTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<div class="footer">
+    印鑑借用管理系統 Professional Edition
+</div>
+
+<script>
+const sealList = ["(1)", "(3)", "(4)", "(5)", "(6)"];
+
+let records = JSON.parse(localStorage.getItem("sealRecords")) || [];
+
+function saveData(){
+    localStorage.setItem("sealRecords", JSON.stringify(records));
+}
+
+function formatDate(date){
+    return new Date(date).toLocaleString("zh-TW", {
+        year:'numeric',
+        month:'2-digit',
+        day:'2-digit',
+        hour:'2-digit',
+        minute:'2-digit'
+    });
+}
+
+function renderStatus(){
+
+    const grid = document.getElementById("statusGrid");
+    grid.innerHTML = "";
+
+    sealList.forEach(seal=>{
+
+        const active = records.find(r=>r.seal===seal && !r.returnTime);
+
+        const card = document.createElement("div");
+
+        if(active){
+
+            card.className = "card borrowed";
+
+            card.innerHTML = `
+                <h3>${seal}</h3>
+                <div class="status">🔴 借出中</div>
+                <small>借用人：${active.borrower}</small>
+            `;
+
+        }else{
+
+            card.className = "card available";
+
+            card.innerHTML = `
+                <h3>${seal}</h3>
+                <div class="status">🟢 可借用</div>
+                <small>目前可使用</small>
+            `;
+        }
+
+        grid.appendChild(card);
+
+    });
+
+}
+
+function renderTable(){
+
+    const table = document.getElementById("recordTable");
+    table.innerHTML = "";
+
+    records.slice().reverse().forEach((r,index)=>{
+
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>${r.seal}</td>
+            <td>${r.borrower}</td>
+            <td>${r.department}</td>
+            <td>${formatDate(r.borrowTime)}</td>
+            <td>${r.returnTime ? formatDate(r.returnTime) : '-'}</td>
+            <td>${r.purpose}</td>
+
+            <td>
+                ${
+                    r.returnTime
+                    ? '<span class="badge badge-green">已歸還</span>'
+                    : '<span class="badge badge-red">借出中</span>'
+                }
+            </td>
+
+            <td>
+                ${
+                    !r.returnTime
+                    ? `<button class="return-btn" onclick="returnSeal(${records.indexOf(r)})">歸還</button>`
+                    : '-'
+                }
+            </td>
+        `;
+
+        table.appendChild(tr);
+
+    });
+
+}
+
+function borrowSeal(){
+
+    const borrower = document.getElementById("borrower").value.trim();
+    const department = document.getElementById("department").value.trim();
+    const seal = document.getElementById("sealNumber").value;
+    const purpose = document.getElementById("purpose").value.trim();
+
+    if(!borrower || !seal || !purpose){
+
+        alert("請填寫必要欄位");
+        return;
+    }
+
+    const alreadyBorrowed = records.find(r=>r.seal===seal && !r.returnTime);
+
+    if(alreadyBorrowed){
+
+        alert(`印鑑 ${seal} 目前借出中`);
+        return;
+    }
+
+    records.push({
+        seal,
+        borrower,
+        department,
+        purpose,
+        borrowTime:new Date(),
+        returnTime:null
+    });
+
+    saveData();
+
+    renderStatus();
+    renderTable();
+
+    document.getElementById("borrower").value = "";
+    document.getElementById("department").value = "";
+    document.getElementById("sealNumber").value = "";
+    document.getElementById("purpose").value = "";
+
+    alert("借用成功");
+
+}
+
+function returnSeal(index){
+
+    if(confirm("確認歸還此印鑑？")){
+
+        records[index].returnTime = new Date();
+
+        saveData();
+
+        renderStatus();
+        renderTable();
+
+        alert("已完成歸還");
+
+    }
+
+}
+
+renderStatus();
+renderTable();
+</script>
+
+</body>
+</html>
