@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>印鑑借用管理系統｜Firebase 雲端版</title>
+<title>印鑑借用管理系統｜企業專業版</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
 
@@ -22,8 +22,57 @@
 
 body{
     background:#f1f5f9;
-    padding:20px;
     color:#1e293b;
+}
+
+.app{
+    display:flex;
+    min-height:100vh;
+}
+
+/* Sidebar */
+
+.sidebar{
+    width:260px;
+    background:#0f172a;
+    color:white;
+    padding:20px;
+    flex-shrink:0;
+}
+
+.logo{
+    font-size:24px;
+    font-weight:bold;
+    margin-bottom:30px;
+}
+
+.menu-title{
+    font-size:13px;
+    opacity:0.6;
+    margin:20px 0 10px;
+}
+
+.menu-item{
+    padding:14px;
+    border-radius:12px;
+    cursor:pointer;
+    transition:0.2s;
+    margin-bottom:8px;
+}
+
+.menu-item:hover{
+    background:#1e293b;
+}
+
+.menu-item.active{
+    background:#2563eb;
+}
+
+/* Main */
+
+.main{
+    flex:1;
+    padding:20px;
 }
 
 .header{
@@ -32,30 +81,30 @@ body{
     padding:25px;
     border-radius:18px;
     margin-bottom:20px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.12);
+    box-shadow:0 10px 25px rgba(0,0,0,0.1);
 }
 
 .header h1{
-    font-size:32px;
-}
-
-.layout{
-    display:grid;
-    grid-template-columns:360px 1fr;
-    gap:20px;
+    font-size:30px;
 }
 
 .panel{
     background:white;
     border-radius:18px;
     padding:20px;
-    box-shadow:0 5px 15px rgba(0,0,0,0.06);
     margin-bottom:20px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.06);
 }
 
 .panel h2{
-    color:#1d4ed8;
+    color:#2563eb;
     margin-bottom:18px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:350px 1fr;
+    gap:20px;
 }
 
 .form-group{
@@ -76,7 +125,6 @@ body{
     border-radius:10px;
     border:1px solid #dbe4f0;
     background:#f8fafc;
-    font-size:15px;
 }
 
 textarea{
@@ -84,19 +132,18 @@ textarea{
 }
 
 .btn{
-    width:100%;
     border:none;
-    padding:14px;
-    border-radius:12px;
-    font-size:16px;
-    font-weight:bold;
+    padding:12px 16px;
+    border-radius:10px;
     cursor:pointer;
+    font-weight:bold;
     transition:0.2s;
 }
 
 .btn-primary{
     background:#2563eb;
     color:white;
+    width:100%;
 }
 
 .btn-primary:hover{
@@ -108,17 +155,9 @@ textarea{
     color:white;
 }
 
-.btn-green:hover{
-    background:#15803d;
-}
-
 .btn-red{
     background:#dc2626;
     color:white;
-    padding:8px 12px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
 }
 
 .status-grid{
@@ -142,7 +181,7 @@ textarea{
 }
 
 .card h3{
-    font-size:26px;
+    font-size:24px;
     margin-bottom:10px;
 }
 
@@ -186,14 +225,12 @@ th{
     background:#1e3a8a;
     color:white;
     padding:14px;
-    font-size:14px;
 }
 
 td{
     padding:12px;
     border-bottom:1px solid #e2e8f0;
     text-align:center;
-    font-size:14px;
 }
 
 tr:hover{
@@ -217,15 +254,6 @@ tr:hover{
     color:#166534;
 }
 
-.return-btn{
-    border:none;
-    background:#16a34a;
-    color:white;
-    padding:8px 14px;
-    border-radius:8px;
-    cursor:pointer;
-}
-
 .pagination{
     display:flex;
     justify-content:center;
@@ -242,27 +270,29 @@ tr:hover{
     cursor:pointer;
 }
 
-.maintenance-list{
-    margin-top:15px;
+.hidden{
+    display:none;
 }
 
 .maintenance-item{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    padding:10px;
+    padding:12px;
     border-bottom:1px solid #e2e8f0;
-}
-
-.footer{
-    margin-top:20px;
-    text-align:center;
-    color:#64748b;
 }
 
 @media(max-width:1000px){
 
-    .layout{
+    .app{
+        flex-direction:column;
+    }
+
+    .sidebar{
+        width:100%;
+    }
+
+    .grid{
         grid-template-columns:1fr;
     }
 
@@ -273,148 +303,215 @@ tr:hover{
 
 <body>
 
-<div class="header">
-    <h1>🏢 印鑑借用管理系統</h1>
-</div>
+<div class="app">
 
-<div class="layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
 
-    <!-- 左側 -->
-    <div>
-
-        <!-- 借用 -->
-        <div class="panel">
-
-            <h2>✍️ 借用登記</h2>
-
-            <div class="form-group">
-                <label>借用人</label>
-                <input type="text" id="borrower">
-            </div>
-
-            <div class="form-group">
-                <label>部門</label>
-                <input type="text" id="department">
-            </div>
-
-            <div class="form-group">
-                <label>印鑑編號</label>
-
-                <select id="seal"></select>
-
-            </div>
-
-            <div class="form-group">
-                <label>用途</label>
-                <textarea id="purpose" rows="4"></textarea>
-            </div>
-
-            <button class="btn btn-primary" onclick="borrowSeal()">
-                📌 確認借用
-            </button>
-
+        <div class="logo">
+            🏢 印鑑系統
         </div>
 
-        <!-- 尚未歸還 -->
-        <div class="panel">
-
-            <h2>⚠ 尚未歸還專區</h2>
-
-            <div id="unreturnedArea"></div>
-
+        <div class="menu-title">
+            借用管理
         </div>
 
-        <!-- 印鑑維護 -->
-        <div class="panel">
+        <div
+            class="menu-item active"
+            onclick="showPage('borrowPage',this)"
+        >
+            📋 借用管理
+        </div>
 
-            <h2>🛠 印鑑維護</h2>
+        <div class="menu-title">
+            系統管理
+        </div>
 
-            <div class="form-group">
-                <label>新增印鑑編號</label>
-                <input type="text" id="newSeal">
-            </div>
-
-            <button class="btn btn-green" onclick="addSeal()">
-                ➕ 新增印鑑
-            </button>
-
-            <div class="maintenance-list" id="sealListArea"></div>
-
+        <div
+            class="menu-item"
+            onclick="showPage('sealPage',this)"
+        >
+            🛠 印鑑維護
         </div>
 
     </div>
 
-    <!-- 右側 -->
-    <div>
+    <!-- Main -->
+    <div class="main">
 
-        <!-- 狀態 -->
-        <div class="panel">
+        <div class="header">
+            <h1>印鑑借用管理系統</h1>
+        </div>
 
-            <h2>📦 即時狀態</h2>
+        <!-- 借用頁 -->
+        <div id="borrowPage">
 
-            <div class="status-grid" id="statusGrid"></div>
+            <div class="grid">
+
+                <!-- 左側 -->
+                <div>
+
+                    <!-- 借用 -->
+                    <div class="panel">
+
+                        <h2>✍️ 借用登記</h2>
+
+                        <div class="form-group">
+                            <label>借用人</label>
+                            <input type="text" id="borrower">
+                        </div>
+
+                        <div class="form-group">
+                            <label>部門</label>
+                            <input type="text" id="department">
+                        </div>
+
+                        <div class="form-group">
+                            <label>印鑑編號</label>
+                            <select id="seal"></select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>用途</label>
+                            <textarea id="purpose" rows="4"></textarea>
+                        </div>
+
+                        <button
+                            class="btn btn-primary"
+                            onclick="borrowSeal()"
+                        >
+                            📌 確認借用
+                        </button>
+
+                    </div>
+
+                    <!-- 未歸還 -->
+                    <div class="panel">
+
+                        <h2>⚠ 尚未歸還</h2>
+
+                        <div id="unreturnedArea"></div>
+
+                    </div>
+
+                </div>
+
+                <!-- 右側 -->
+                <div>
+
+                    <!-- 狀態 -->
+                    <div class="panel">
+
+                        <h2>📦 即時狀態</h2>
+
+                        <div
+                            class="status-grid"
+                            id="statusGrid"
+                        ></div>
+
+                    </div>
+
+                    <!-- 紀錄 -->
+                    <div class="panel">
+
+                        <h2>📋 借用紀錄</h2>
+
+                        <div class="filter-bar">
+
+                            <input
+                                type="text"
+                                id="searchInput"
+                                placeholder="搜尋借用人 / 部門 / 用途"
+                            >
+
+                            <input type="date" id="startDate">
+
+                            <input type="date" id="endDate">
+
+                            <button
+                                class="btn btn-green"
+                                onclick="exportExcel()"
+                            >
+                                📊 匯出 Excel
+                            </button>
+
+                        </div>
+
+                        <div class="table-wrap">
+
+                            <table>
+
+                                <thead>
+
+                                    <tr>
+                                        <th>印鑑</th>
+                                        <th>借用人</th>
+                                        <th>部門</th>
+                                        <th>借用時間</th>
+                                        <th>歸還時間</th>
+                                        <th>用途</th>
+                                        <th>狀態</th>
+                                        <th>操作</th>
+                                    </tr>
+
+                                </thead>
+
+                                <tbody id="recordTable"></tbody>
+
+                            </table>
+
+                        </div>
+
+                        <div class="pagination">
+
+                            <button
+                                class="page-btn"
+                                id="prevBtn"
+                            >
+                                上一頁
+                            </button>
+
+                            <span id="pageInfo"></span>
+
+                            <button
+                                class="page-btn"
+                                id="nextBtn"
+                            >
+                                下一頁
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
-        <!-- 借用紀錄 -->
-        <div class="panel">
+        <!-- 印鑑維護頁 -->
+        <div id="sealPage" class="hidden">
 
-            <h2>📋 借用紀錄</h2>
+            <div class="panel">
 
-            <div class="filter-bar">
+                <h2>🛠 印鑑維護</h2>
 
-                <input
-                    type="text"
-                    id="searchInput"
-                    placeholder="搜尋借用人 / 部門 / 用途"
+                <div class="form-group">
+                    <label>新增印鑑編號</label>
+                    <input type="text" id="newSeal">
+                </div>
+
+                <button
+                    class="btn btn-green"
+                    onclick="addSeal()"
                 >
-
-                <input type="date" id="startDate">
-
-                <input type="date" id="endDate">
-
-                <button class="btn-green" onclick="exportExcel()">
-                    📊 匯出 Excel
+                    ➕ 新增印鑑
                 </button>
 
-            </div>
+                <br><br>
 
-            <div class="table-wrap">
-
-                <table>
-
-                    <thead>
-
-                        <tr>
-                            <th>印鑑</th>
-                            <th>借用人</th>
-                            <th>部門</th>
-                            <th>借用時間</th>
-                            <th>歸還時間</th>
-                            <th>用途</th>
-                            <th>狀態</th>
-                            <th>操作</th>
-                        </tr>
-
-                    </thead>
-
-                    <tbody id="recordTable"></tbody>
-
-                </table>
-
-            </div>
-
-            <div class="pagination">
-
-                <button class="page-btn" id="prevBtn">
-                    上一頁
-                </button>
-
-                <span id="pageInfo"></span>
-
-                <button class="page-btn" id="nextBtn">
-                    下一頁
-                </button>
+                <div id="sealListArea"></div>
 
             </div>
 
@@ -422,10 +519,6 @@ tr:hover{
 
     </div>
 
-</div>
-
-<div class="footer">
-    Firebase 雲端版｜印鑑借用管理系統
 </div>
 
 <script type="module">
@@ -465,6 +558,34 @@ let sealList = [];
 
 const rowsPerPage = 10;
 let currentPage = 1;
+
+function showPage(pageId,el){
+
+    document
+        .querySelectorAll("#borrowPage,#sealPage")
+        .forEach(page=>{
+
+            page.classList.add("hidden");
+
+        });
+
+    document
+        .getElementById(pageId)
+        .classList.remove("hidden");
+
+    document
+        .querySelectorAll(".menu-item")
+        .forEach(item=>{
+
+            item.classList.remove("active");
+
+        });
+
+    el.classList.add("active");
+
+}
+
+window.showPage = showPage;
 
 function formatDate(date){
 
@@ -545,7 +666,7 @@ function renderSealMaintenance(){
             <span>${seal.name}</span>
 
             <button
-                class="btn-red"
+                class="btn btn-red"
                 onclick="deleteSeal('${seal.id}')"
             >
                 刪除
@@ -608,7 +729,7 @@ async function deleteSeal(id){
 
     if(borrowed){
 
-        alert("此印鑑目前借出中，無法刪除");
+        alert("此印鑑目前借出中");
         return;
     }
 
@@ -761,7 +882,9 @@ function renderUnreturned(){
 
     if(activeList.length===0){
 
-        area.innerHTML = "目前無未歸還紀錄";
+        area.innerHTML =
+            "目前無未歸還紀錄";
+
         return;
     }
 
@@ -894,7 +1017,7 @@ function renderTable(){
 
                     ? `
                         <button
-                            class="return-btn"
+                            class="btn btn-green"
                             onclick="returnSeal('${r.id}')"
                         >
                             歸還
@@ -1007,16 +1130,3 @@ document.getElementById("nextBtn")
 
         currentPage++;
 
-        renderTable();
-
-    }
-
-});
-
-loadSeals();
-loadRecords();
-
-</script>
-
-</body>
-</html>
