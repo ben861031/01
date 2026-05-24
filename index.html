@@ -653,7 +653,6 @@ const provider = new GoogleAuthProvider();
 let currentUser = "";
 let isAdmin = false;
 
-
 async function googleLogin(){
 
 try{
@@ -664,17 +663,17 @@ const user = result.user;
 
 currentUser = user.displayName || user.email;
 
-// 顯示系統
 document.getElementById("loginPage").style.display = "none";
 document.getElementById("systemArea").style.display = "block";
 
-// 非管理者隱藏維護功能
+// 管理者
 if(user.email === "ben861031@gmail.com"){
 
 isAdmin = true;
 
 }else{
 
+// 非管理者隱藏管理功能
 document.querySelectorAll(".menu-item").forEach(el=>{
 
 if(
@@ -688,31 +687,16 @@ el.style.display = "none";
 
 }
 
-// 自動帶入借用人
-const borrowerInput = document.getElementById("borrower");
-
-if(borrowerInput){
-borrowerInput.value = currentUser;
-}
-
-// Firebase 雲端資料
-await loadDepartments();
-await loadSeals();
-await loadRecords();
-
-console.log("Google登入成功");
-
 }catch(e){
 
-console.error("Google登入失敗",e);
-alert("Google登入失敗：" + e.message);
+console.error(e);
+alert("Google登入失敗");
 
 }
 
 }
 
 window.googleLogin = googleLogin;
-
 
 let records = [];
 let sealList = [];
@@ -1682,7 +1666,9 @@ document.getElementById("borrowDate")
 document.getElementById("returnDate")
 .addEventListener("change",renderTable);
 
-// 等待登入後載入 Firebase 資料
+loadDepartments();
+loadSeals();
+loadRecords();
 
 </script>
 
