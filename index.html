@@ -243,7 +243,53 @@ grid-template-columns:1fr;
 </style>
 </head>
 
+
 <body>
+
+<div id="loginPage" style="
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:#f1f5f9;
+">
+
+<div style="
+width:380px;
+background:white;
+padding:35px;
+border-radius:20px;
+box-shadow:0 4px 20px rgba(0,0,0,.15);
+">
+
+<h1 style="margin-bottom:20px;">🏢 印鑑系統登入</h1>
+
+<button onclick="googleLogin()"
+style="
+width:100%;
+padding:14px;
+border:none;
+border-radius:12px;
+background:#2563eb;
+color:white;
+font-size:16px;
+cursor:pointer;
+">
+
+Google 登入
+
+</button>
+
+<p style="margin-top:15px;color:#64748b;font-size:13px;">
+Firebase Authentication 驗證登入
+</p>
+
+</div>
+
+</div>
+
+<div id="systemArea" style="display:none;">
+
 
 <div class="app">
 
@@ -578,6 +624,14 @@ doc
 }
 from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
+import {
+getAuth,
+GoogleAuthProvider,
+signInWithPopup,
+signOut
+}
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
 const firebaseConfig = {
 
 apiKey: "AIzaSyCzvPwTbxc_Lg7peKRgP0zUrlmI6kkE0b4",
@@ -592,6 +646,57 @@ measurementId: "G-7RKPNF7BK9"
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+let currentUser = "";
+let isAdmin = false;
+
+async function googleLogin(){
+
+try{
+
+const result = await signInWithPopup(auth,provider);
+
+const user = result.user;
+
+currentUser = user.displayName || user.email;
+
+document.getElementById("loginPage").style.display = "none";
+document.getElementById("systemArea").style.display = "block";
+
+// 管理者
+if(user.email === "ben861031@gmail.com"){
+
+isAdmin = true;
+
+}else{
+
+// 非管理者隱藏管理功能
+document.querySelectorAll(".menu-item").forEach(el=>{
+
+if(
+el.innerText.includes("印鑑維護") ||
+el.innerText.includes("部門維護")
+){
+el.style.display = "none";
+}
+
+});
+
+}
+
+}catch(e){
+
+console.error(e);
+alert("Google登入失敗");
+
+}
+
+}
+
+window.googleLogin = googleLogin;
 
 let records = [];
 let sealList = [];
@@ -744,11 +849,6 @@ onclick="moveDeptDown('${dept.id}')">
 ⬇
 </button>
 
-<button class="btn btn-green"
-onclick="editDepartment('${dept.id}')">
-✏ 編輯
-</button>
-
 <button class="btn btn-red"
 onclick="deleteDepartment('${dept.id}')">
 刪除
@@ -853,34 +953,6 @@ alert("新增成功");
 await loadDepartments();
 
 }
-
-
-
-async function editDepartment(id){
-
-const dept =
-departmentList.find(d=>d.id===id);
-
-if(!dept) return;
-
-const newName =
-prompt("請輸入新的部門名稱",dept.name);
-
-if(!newName) return;
-
-await updateDoc(
-doc(db,"departments",id),
-{
-name:newName.trim()
-}
-);
-
-alert("修改成功");
-
-await loadDepartments();
-
-}
-
 
 async function deleteDepartment(id){
 
@@ -1002,11 +1074,6 @@ onclick="moveDown('${seal.id}')">
 ⬇
 </button>
 
-<button class="btn btn-green"
-onclick="editSeal('${seal.id}')">
-✏ 編輯
-</button>
-
 <button class="btn btn-red"
 onclick="deleteSeal('${seal.id}')">
 刪除
@@ -1112,34 +1179,6 @@ await loadSeals();
 
 }
 
-
-
-async function editSeal(id){
-
-const seal =
-sealList.find(s=>s.id===id);
-
-if(!seal) return;
-
-const newName =
-prompt("請輸入新的印鑑名稱",seal.name);
-
-if(!newName) return;
-
-await updateDoc(
-doc(db,"seals",id),
-{
-name:newName.trim()
-}
-);
-
-alert("修改成功");
-
-await loadSeals();
-
-}
-
-
 async function deleteSeal(id){
 
 await deleteDoc(doc(db,"seals",id));
@@ -1153,6 +1192,8 @@ await loadSeals();
 /* 借用 */
 
 async function borrowSeal(){
+
+document.getElementById("borrower").value = currentUser;
 
 const borrower =
 document.getElementById("borrower")
@@ -1336,9 +1377,7 @@ active ? "card borrowed" : "card available";
 card.innerHTML = `
 <h3>${seal.name}</h3>
 <p>
-${active 
-? `🔴 借出中（${active.borrower}）`
-: "🟢 可借用"}
+${active ? "🔴 借出中" : "🟢 可借用"}
 </p>
 `;
 
@@ -1361,20 +1400,6 @@ table.innerHTML = "";
 
 records
 .filter(r=>!r.returnTime)
-.slice()
-.sort((a,b)=>{
-
-const timeA = a.borrowTime?.seconds
-? a.borrowTime.seconds * 1000
-: new Date(a.borrowTime).getTime();
-
-const timeB = b.borrowTime?.seconds
-? b.borrowTime.seconds * 1000
-: new Date(b.borrowTime).getTime();
-
-return timeB - timeA;
-
-})
 .forEach(r=>{
 
 const tr =
@@ -1466,19 +1491,7 @@ returnMatch
 
 })
 .slice()
-.sort((a,b)=>{
-
-const timeA = a.borrowTime?.seconds
-? a.borrowTime.seconds * 1000
-: new Date(a.borrowTime).getTime();
-
-const timeB = b.borrowTime?.seconds
-? b.borrowTime.seconds * 1000
-: new Date(b.borrowTime).getTime();
-
-return timeB - timeA;
-
-});
+.reverse();
 
 const totalPages =
 Math.ceil(filteredRecords.length / pageSize);
@@ -1640,9 +1653,6 @@ window.addDepartment = addDepartment;
 window.deleteDepartment = deleteDepartment;
 window.moveDeptUp = moveDeptUp;
 window.moveDeptDown = moveDeptDown;
-window.editDepartment = editDepartment;
-
-window.editSeal = editSeal;
 
 document.getElementById("searchInput")
 .addEventListener("input",renderTable);
@@ -1662,5 +1672,5 @@ loadRecords();
 
 </script>
 
-</body>
+</div></body>
 </html>
