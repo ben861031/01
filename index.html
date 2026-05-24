@@ -666,6 +666,18 @@ currentUser = user.displayName || user.email;
 document.getElementById("loginPage").style.display = "none";
 document.getElementById("systemArea").style.display = "block";
 
+// 登入後載入 Firebase 雲端資料
+await loadDepartments();
+await loadSeals();
+await loadRecords();
+
+// 自動帶入借用人
+const borrowerInput = document.getElementById("borrower");
+
+if(borrowerInput){
+borrowerInput.value = currentUser;
+}
+
 // 管理者
 if(user.email === "ben861031@gmail.com"){
 
@@ -1666,9 +1678,7 @@ document.getElementById("borrowDate")
 document.getElementById("returnDate")
 .addEventListener("change",renderTable);
 
-loadDepartments();
-loadSeals();
-loadRecords();
+// 初始不先載入，等待登入後載入
 
 </script>
 
