@@ -352,11 +352,21 @@ onclick="borrowSeal()">
 </div>
 
 <!-- 歸還作業 -->
+
 <div id="returnPage" class="hidden">
+
 <div class="panel">
+
 <h2>↩ 歸還作業</h2>
+
+<p style="margin:10px 0 20px;color:#64748b;">
+目前尚未歸還之印鑑借用案件
+</p>
+
 <div class="table-wrap">
+
 <table>
+
 <thead>
 <tr>
 <th>印鑑</th>
@@ -364,17 +374,24 @@ onclick="borrowSeal()">
 <th>部門</th>
 <th>借用時間</th>
 <th>用途</th>
-
+<th>操作</th>
 </tr>
 </thead>
+
 <tbody id="returnTable"></tbody>
+
 </table>
+
 </div>
+
 </div>
+
 </div>
 
 <!-- 借用紀錄 -->
+
 <div id="historyPage" class="hidden">
+
 <div class="panel">
 
 <h2>📋 借用紀錄</h2>
@@ -431,7 +448,6 @@ onclick="exportExcel()">
 <th>歸還時間</th>
 <th>用途</th>
 <th>狀態</th>
-
 </tr>
 
 </thead>
@@ -464,12 +480,6 @@ style="display:flex;gap:8px;flex-wrap:wrap;">
 
 </div>
 
-
-</div>
-
-</div>
-
-</div>
 
 </div>
 
@@ -1200,6 +1210,7 @@ grid.appendChild(card);
 });
 
 }
+
 
 
 function renderReturnTable(){
