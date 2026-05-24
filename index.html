@@ -240,58 +240,6 @@ grid-template-columns:1fr;
 
 }
 
-
-/* 側邊欄收合 */
-.sidebar{
-transition:0.3s;
-overflow:hidden !important;
-}
-
-.sidebar.collapsed{
-width:88px !important;
-}
-
-.sidebar.collapsed .sidebar-label,
-.sidebar.collapsed .menu-text,
-.sidebar.collapsed .logo-text{
-display:none !important;
-}
-
-.toggle-btn{
-width:100%;
-padding:10px;
-background:#1e293b;
-border:none;
-border-radius:10px;
-color:white;
-cursor:pointer;
-margin-bottom:20px;
-font-size:18px;
-}
-
-.menu-icon{
-min-width:24px;
-text-align:center;
-font-size:18px;
-}
-
-.tooltip{
-position:absolute;
-left:70px;
-background:#111827;
-color:white;
-padding:6px 10px;
-border-radius:8px;
-font-size:12px;
-display:none;
-white-space:nowrap;
-z-index:999;
-}
-
-.sidebar.collapsed .menu-item:hover .tooltip{
-display:block;
-}
-
 </style>
 </head>
 
@@ -299,37 +247,33 @@ display:block;
 
 <div class="app">
 
-<div class="sidebar" id="sidebar">
-
-
-<button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+<div class="sidebar">
 
 <div class="logo">
-
-🏢 <span class="logo-text">印鑑系統</span>
+🏢 印鑑系統
 </div>
 
-<div class="menu-title sidebar-label">
+<div class="menu-title">
 借用管理
 </div>
 
 <div class="menu-item active"
 onclick="showPage('borrowPage',this)">
-<span class="menu-icon">📋</span><span class="menu-text">借用管理</span><div class="tooltip">借用管理</div>
+📋 借用管理
 </div>
 
-<div class="menu-title sidebar-label">
+<div class="menu-title">
 系統管理
 </div>
 
 <div class="menu-item"
 onclick="showPage('sealPage',this)">
-<span class="menu-icon">🛠</span><span class="menu-text">印鑑維護</span><div class="tooltip">印鑑維護</div>
+🛠 印鑑維護
 </div>
 
 <div class="menu-item"
 onclick="showPage('deptPage',this)">
-<span class="menu-icon">🏢</span><span class="menu-text">部門維護</span><div class="tooltip">部門維護</div>
+🏢 部門維護
 </div>
 
 </div>
@@ -749,38 +693,7 @@ sortOrder:i + 1
 
 }
 
-await 
-function toggleSidebar(){
-
-const sidebar =
-document.getElementById("sidebar");
-
-sidebar.classList.toggle("collapsed");
-
-localStorage.setItem(
-"sidebarCollapsed",
-sidebar.classList.contains("collapsed")
-);
-
-}
-
-window.addEventListener("load",()=>{
-
-const collapsed =
-localStorage.getItem("sidebarCollapsed");
-
-if(collapsed === "true"){
-
-document
-.getElementById("sidebar")
-.classList.add("collapsed");
-
-}
-
-});
-
-
-loadDepartments();
+await loadDepartments();
 
 }
 
