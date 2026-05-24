@@ -744,6 +744,11 @@ onclick="moveDeptDown('${dept.id}')">
 ⬇
 </button>
 
+<button class="btn btn-green"
+onclick="editDepartment('${dept.id}')">
+✏ 編輯
+</button>
+
 <button class="btn btn-red"
 onclick="deleteDepartment('${dept.id}')">
 刪除
@@ -848,6 +853,34 @@ alert("新增成功");
 await loadDepartments();
 
 }
+
+
+
+async function editDepartment(id){
+
+const dept =
+departmentList.find(d=>d.id===id);
+
+if(!dept) return;
+
+const newName =
+prompt("請輸入新的部門名稱",dept.name);
+
+if(!newName) return;
+
+await updateDoc(
+doc(db,"departments",id),
+{
+name:newName.trim()
+}
+);
+
+alert("修改成功");
+
+await loadDepartments();
+
+}
+
 
 async function deleteDepartment(id){
 
@@ -969,6 +1002,11 @@ onclick="moveDown('${seal.id}')">
 ⬇
 </button>
 
+<button class="btn btn-green"
+onclick="editSeal('${seal.id}')">
+✏ 編輯
+</button>
+
 <button class="btn btn-red"
 onclick="deleteSeal('${seal.id}')">
 刪除
@@ -1073,6 +1111,34 @@ alert("新增成功");
 await loadSeals();
 
 }
+
+
+
+async function editSeal(id){
+
+const seal =
+sealList.find(s=>s.id===id);
+
+if(!seal) return;
+
+const newName =
+prompt("請輸入新的印鑑名稱",seal.name);
+
+if(!newName) return;
+
+await updateDoc(
+doc(db,"seals",id),
+{
+name:newName.trim()
+}
+);
+
+alert("修改成功");
+
+await loadSeals();
+
+}
+
 
 async function deleteSeal(id){
 
@@ -1574,6 +1640,9 @@ window.addDepartment = addDepartment;
 window.deleteDepartment = deleteDepartment;
 window.moveDeptUp = moveDeptUp;
 window.moveDeptDown = moveDeptDown;
+window.editDepartment = editDepartment;
+
+window.editSeal = editSeal;
 
 document.getElementById("searchInput")
 .addEventListener("input",renderTable);
