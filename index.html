@@ -267,6 +267,16 @@ onclick="showPage('borrowPage',this)">
 </div>
 
 <div class="menu-item"
+onclick="showPage('returnPage',this)">
+↩ 歸還作業
+</div>
+
+<div class="menu-item"
+onclick="showPage('historyPage',this)">
+📑 借用紀錄
+</div>
+
+<div class="menu-item"
 onclick="showPage('sealPage',this)">
 🛠 印鑑維護
 </div>
@@ -335,6 +345,36 @@ onclick="borrowSeal()">
 
 </div>
 
+</div>
+
+</div>
+
+</div>
+
+<!-- 歸還作業 -->
+<div id="returnPage" class="hidden">
+<div class="panel">
+<h2>↩ 歸還作業</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>印鑑</th>
+<th>借用人</th>
+<th>部門</th>
+<th>借用時間</th>
+<th>用途</th>
+
+</tr>
+</thead>
+<tbody id="returnTable"></tbody>
+</table>
+</div>
+</div>
+</div>
+
+<!-- 借用紀錄 -->
+<div id="historyPage" class="hidden">
 <div class="panel">
 
 <h2>📋 借用紀錄</h2>
@@ -391,14 +431,39 @@ onclick="exportExcel()">
 <th>歸還時間</th>
 <th>用途</th>
 <th>狀態</th>
-<th>操作</th>
+
 </tr>
 
 </thead>
 
 <tbody id="recordTable"></tbody>
 
+
 </table>
+
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:15px;flex-wrap:wrap;gap:10px;">
+
+<div>
+<label>每頁顯示：</label>
+
+<select id="pageSizeSelect" onchange="changePageSize()"
+style="padding:8px;border-radius:8px;">
+
+<option value="10">10 筆</option>
+<option value="25">25 筆</option>
+<option value="50">50 筆</option>
+
+</select>
+</div>
+
+<div id="paginationArea"
+style="display:flex;gap:8px;flex-wrap:wrap;">
+</div>
+
+</div>
+
 
 </div>
 
@@ -511,10 +576,13 @@ let records = [];
 let sealList = [];
 let departmentList = [];
 
+let currentPage = 1;
+let pageSize = 10;
+
 function showPage(pageId,el){
 
 document
-.querySelectorAll("#borrowPage,#sealPage,#deptPage")
+.querySelectorAll("#borrowPage,#returnPage,#historyPage,#sealPage,#deptPage")
 .forEach(page=>page.classList.add("hidden"));
 
 document
@@ -1021,6 +1089,26 @@ return;
 
 }
 
+/* 防止重複借用 */
+
+const exists =
+records.find(r=>
+
+r.seal === seal &&
+!r.returnTime
+
+);
+
+if(exists){
+
+alert(`印鑑 ${seal} 目前借出中，無法重複借用`);
+
+return;
+
+}
+
+/* 新增借用 */
+
 await addDoc(collection(db,"sealRecords"),{
 
 seal,
@@ -1072,6 +1160,7 @@ id:docSnap.id,
 });
 
 renderTable();
+renderReturnTable();
 renderStatus();
 
 }
@@ -1112,6 +1201,46 @@ grid.appendChild(card);
 
 }
 
+
+function renderReturnTable(){
+
+const table =
+document.getElementById("returnTable");
+
+if(!table) return;
+
+table.innerHTML = "";
+
+records
+.filter(r=>!r.returnTime)
+.forEach(r=>{
+
+const tr =
+document.createElement("tr");
+
+tr.innerHTML = `
+
+<td>${r.seal}</td>
+<td>${r.borrower}</td>
+<td>${r.department}</td>
+<td>${formatDate(r.borrowTime)}</td>
+<td>${r.purpose}</td>
+
+<td>
+<button class="btn btn-green"
+onclick="returnSeal('${r.id}')">
+歸還
+</button>
+</td>
+`;
+
+table.appendChild(tr);
+
+});
+
+}
+
+
 function renderTable(){
 
 const keyword =
@@ -1135,7 +1264,7 @@ document.getElementById("recordTable");
 
 table.innerHTML = "";
 
-records
+const filteredRecords = records
 .filter(r=>{
 
 const keywordMatch =
@@ -1175,8 +1304,25 @@ returnMatch
 
 })
 .slice()
-.reverse()
-.forEach(r=>{
+.reverse();
+
+const totalPages =
+Math.ceil(filteredRecords.length / pageSize);
+
+if(currentPage > totalPages){
+currentPage = 1;
+}
+
+const start =
+(currentPage - 1) * pageSize;
+
+const end =
+start + pageSize;
+
+const pageRecords =
+filteredRecords.slice(start,end);
+
+pageRecords.forEach(r=>{
 
 const tr =
 document.createElement("tr");
@@ -1207,27 +1353,71 @@ ${r.returnTime
 
 </td>
 
-<td>
 
-${!r.returnTime
-
-? `<button class="btn btn-green"
-onclick="returnSeal('${r.id}')">
-歸還
-</button>`
-
-: '-'
-
-}
-
-</td>
 `;
 
 table.appendChild(tr);
 
 });
 
+renderPagination(totalPages);
+
 }
+
+
+function renderPagination(totalPages){
+
+const area =
+document.getElementById("paginationArea");
+
+area.innerHTML = "";
+
+if(totalPages <= 1) return;
+
+for(let i=1;i<=totalPages;i++){
+
+const btn =
+document.createElement("button");
+
+btn.className = "btn";
+
+btn.innerText = i;
+
+btn.style.background =
+i === currentPage
+? "#2563eb"
+: "#e2e8f0";
+
+btn.style.color =
+i === currentPage
+? "white"
+: "black";
+
+btn.onclick = ()=>{
+
+currentPage = i;
+renderTable();
+
+};
+
+area.appendChild(btn);
+
+}
+
+}
+
+function changePageSize(){
+
+pageSize = parseInt(
+document.getElementById("pageSizeSelect").value
+);
+
+currentPage = 1;
+
+renderTable();
+
+}
+
 
 function exportExcel(){
 
