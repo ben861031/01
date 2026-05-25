@@ -1241,7 +1241,11 @@ return;
 await addDoc(collection(db,"sealRecords"),{
 
 seal,
-borrower,
+
+borrower:
+document.getElementById("borrower").value
+|| currentUser,
+
 department,
 purpose,
 borrowTime:new Date(),
