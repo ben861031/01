@@ -1379,7 +1379,9 @@ active ? "card borrowed" : "card available";
 card.innerHTML = `
 <h3>${seal.name}</h3>
 <p>
-${active ? "🔴 借出中" : "🟢 可借用"}
+${active
+? `🔴 借出中（${active.borrower}）`
+: "🟢 可借用"}
 </p>
 `;
 
