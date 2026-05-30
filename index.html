@@ -288,6 +288,63 @@ font-size:26px;
 text-align:center;
 }
 
+
+.detail-card{
+margin-top:15px;
+background:linear-gradient(135deg,#f8fafc,#ffffff);
+border:1px solid #e2e8f0;
+border-radius:18px;
+padding:18px;
+}
+.detail-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+margin-top:12px;
+}
+.detail-item{
+background:#f8fafc;
+padding:12px;
+border-radius:12px;
+}
+.detail-label{
+font-size:12px;
+color:#64748b;
+margin-bottom:4px;
+}
+.detail-value{
+font-weight:700;
+color:#0f172a;
+}
+.status-good{
+color:#16a34a;
+font-weight:700;
+}
+.status-bad{
+color:#dc2626;
+font-weight:700;
+}
+
+
+.purpose-card{
+margin-top:15px;
+background:#f8fafc;
+border:1px solid #e2e8f0;
+border-radius:14px;
+padding:14px;
+}
+.purpose-title{
+font-size:12px;
+color:#64748b;
+margin-bottom:8px;
+}
+.purpose-content{
+font-weight:700;
+color:#0f172a;
+line-height:1.7;
+word-break:break-word;
+}
+
 </style>
 </head>
 
@@ -1369,22 +1426,41 @@ const el=document.getElementById('sealDetailContent');
 
 if(!active){
 el.innerHTML=`
-<div><b>印鑑：</b>${sealName}</div><br>
-<div><b>狀態：</b>🟢 可借用</div><br>
-<div>目前無借用案件</div>`;
+<div class="detail-card">
+<div class="detail-grid">
+<div class="detail-item">
+<div class="detail-label">印鑑名稱</div>
+<div class="detail-value">${sealName}</div>
+</div>
+<div class="detail-item">
+<div class="detail-label">狀態</div>
+<div class="detail-value status-good">🟢 可借用</div>
+</div>
+</div>
+<div style="margin-top:15px;padding:12px;background:#ecfdf5;border-radius:12px;">
+目前無借用案件
+</div>
+</div>`;
 return;
 }
 
 el.innerHTML=`
-<div><b>印鑑：</b>${sealName}</div><br>
-<div><b>狀態：</b>🔴 借出中</div><br>
-<div><b>借用人：</b>${active.borrower}</div><br>
-<div><b>部門：</b>${active.department}</div><br>
-<div><b>計畫編號：</b>${active.projectNo||''}</div><br>
-<div><b>表單編號：</b>${active.formNo||''}</div><br>
-<div><b>借用時間：</b>${formatDate(active.borrowTime)}</div><br>
-<div><b>已借用：</b>${getBorrowDuration(active.borrowTime)}</div><br>
-<div><b>用途：</b>${active.purpose||''}</div>`;
+<div class="detail-card">
+<div class="detail-grid">
+<div class="detail-item"><div class="detail-label">印鑑名稱</div><div class="detail-value">${sealName}</div></div>
+<div class="detail-item"><div class="detail-label">狀態</div><div class="detail-value status-bad">🔴 借出中</div></div>
+<div class="detail-item"><div class="detail-label">借用人</div><div class="detail-value">${active.borrower}</div></div>
+<div class="detail-item"><div class="detail-label">部門</div><div class="detail-value">${active.department}</div></div>
+<div class="detail-item"><div class="detail-label">計畫編號</div><div class="detail-value">${active.projectNo||''}</div></div>
+<div class="detail-item"><div class="detail-label">表單編號</div><div class="detail-value">${active.formNo||''}</div></div>
+<div class="detail-item"><div class="detail-label">借用時間</div><div class="detail-value">${formatDate(active.borrowTime)}</div></div>
+<div class="detail-item"><div class="detail-label">已借用時間</div><div class="detail-value">${getBorrowDuration(active.borrowTime)}</div></div>
+</div>
+<div class="purpose-card">
+<div class="purpose-title">用途</div>
+<div class="purpose-content">${active.purpose||''}</div>
+</div>
+</div>`;
 }
 
 function renderStatus(){
