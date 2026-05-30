@@ -153,6 +153,10 @@ margin-top:20px;
 border-radius:16px;
 padding:18px;
 color:white;
+cursor:pointer;
+}
+.card.selected{
+outline:4px solid #2563eb;
 }
 
 .available{
@@ -242,6 +246,48 @@ grid-template-columns:1fr;
 
 }
 
+
+.edit-modal-overlay{
+position:fixed;inset:0;background:rgba(0,0,0,.45);
+display:none;align-items:center;justify-content:center;z-index:9999;
+}
+.edit-modal{
+background:white;width:90%;max-width:600px;border-radius:16px;padding:20px;
+}
+
+
+.sidebar{
+width:60px !important;
+overflow:hidden;
+transition:all .25s ease;
+padding:12px !important;
+}
+.sidebar:hover{
+width:240px !important;
+}
+.sidebar .logo{
+margin-bottom:10px;
+white-space:nowrap;
+}
+.sidebar .menu-title,
+.sidebar .menu-item{
+opacity:0;
+visibility:hidden;
+transition:all .15s ease;
+}
+.sidebar:hover .menu-title,
+.sidebar:hover .menu-item{
+opacity:1;
+visibility:visible;
+}
+.sidebar .logo{
+font-size:22px;
+}
+.sidebar:not(:hover) .logo{
+font-size:26px;
+text-align:center;
+}
+
 </style>
 </head>
 
@@ -256,7 +302,7 @@ grid-template-columns:1fr;
 <div class="sidebar">
 
 <div class="logo">
-🏢 印鑑系統
+☰
 </div>
 
 <div class="menu-title">
@@ -328,6 +374,16 @@ onclick="showPage('deptPage',this)">
 </div>
 
 <div class="form-group">
+<label>計畫編號</label>
+<input type="text" id="projectNo">
+</div>
+
+<div class="form-group">
+<label>表單編號</label>
+<input type="text" id="formNo">
+</div>
+
+<div class="form-group">
 <label>用途</label>
 <textarea id="purpose" rows="4"></textarea>
 </div>
@@ -360,6 +416,13 @@ font-weight:bold;
 
 <div class="status-grid" id="statusGrid"></div>
 
+<div id="sealDetailPanel" style="margin-top:20px;padding-top:15px;border-top:1px solid #e2e8f0;">
+<h3>📋 借用資訊</h3>
+<div id="sealDetailContent" style="margin-top:12px;color:#475569;">
+請點選上方印鑑查看詳細資訊
+</div>
+</div>
+
 </div>
 
 </div>
@@ -390,6 +453,8 @@ font-weight:bold;
 <th>借用人</th>
 <th>部門</th>
 <th>借用時間</th>
+<th>計畫編號</th>
+<th>表單編號</th>
 <th>用途</th>
 <th>操作</th>
 </tr>
@@ -430,6 +495,16 @@ placeholder="借用人 / 部門 / 用途">
 </div>
 
 <div>
+<label>計畫編號</label>
+<input type="text" id="projectFilter" placeholder="輸入計畫編號">
+</div>
+
+<div>
+<label>表單編號</label>
+<input type="text" id="formFilter" placeholder="輸入表單編號">
+</div>
+
+<div>
 <label>借用日期</label>
 <input type="date" id="borrowDate">
 </div>
@@ -463,8 +538,10 @@ onclick="exportExcel()">
 <th>部門</th>
 <th>借用時間</th>
 <th>歸還時間</th>
+<th>計畫編號</th>
+<th>表單編號</th>
 <th>用途</th>
-<th>狀態</th>
+<th>狀態</th><th>操作</th>
 </tr>
 
 </thead>
@@ -1115,7 +1192,15 @@ const purpose =
 document.getElementById("purpose")
 .value.trim();
 
-if(!borrower || !department || !seal || !purpose){
+const projectNo =
+document.getElementById("projectNo")
+.value.trim();
+
+const formNo =
+document.getElementById("formNo")
+.value.trim();
+
+if(!borrower || !department || !seal || !projectNo || !formNo || !purpose){
 
 alert("請填寫必要欄位");
 return;
@@ -1151,6 +1236,10 @@ document.getElementById("borrower").value
 || currentUser,
 
 department,
+
+projectNo,
+formNo,
+
 purpose,
 borrowTime:new Date(),
 returnTime:null
@@ -1259,6 +1348,45 @@ alertBox.style.color = color;
 }
 
 
+
+function getBorrowDuration(borrowTime){
+if(!borrowTime) return "-";
+const start = borrowTime.seconds ? borrowTime.seconds*1000 : new Date(borrowTime).getTime();
+const diff = Date.now() - start;
+const days = Math.floor(diff/86400000);
+const hours = Math.floor((diff%86400000)/3600000);
+const mins = Math.floor((diff%3600000)/60000);
+return `${days}天${hours}小時${mins}分`;
+}
+
+function showSealDetail(sealName){
+document.querySelectorAll('#statusGrid .card').forEach(c=>c.classList.remove('selected'));
+const target=document.querySelector(`[data-seal="${sealName}"]`);
+if(target) target.classList.add('selected');
+
+const active = records.find(r=>r.seal===sealName && !r.returnTime);
+const el=document.getElementById('sealDetailContent');
+
+if(!active){
+el.innerHTML=`
+<div><b>印鑑：</b>${sealName}</div><br>
+<div><b>狀態：</b>🟢 可借用</div><br>
+<div>目前無借用案件</div>`;
+return;
+}
+
+el.innerHTML=`
+<div><b>印鑑：</b>${sealName}</div><br>
+<div><b>狀態：</b>🔴 借出中</div><br>
+<div><b>借用人：</b>${active.borrower}</div><br>
+<div><b>部門：</b>${active.department}</div><br>
+<div><b>計畫編號：</b>${active.projectNo||''}</div><br>
+<div><b>表單編號：</b>${active.formNo||''}</div><br>
+<div><b>借用時間：</b>${formatDate(active.borrowTime)}</div><br>
+<div><b>已借用：</b>${getBorrowDuration(active.borrowTime)}</div><br>
+<div><b>用途：</b>${active.purpose||''}</div>`;
+}
+
 function renderStatus(){
 
 const grid =
@@ -1282,6 +1410,7 @@ document.createElement("div");
 card.className =
 active ? "card borrowed" : "card available";
 
+card.setAttribute('data-seal',seal.name); card.onclick=()=>showSealDetail(seal.name);
 card.innerHTML = `
 <h3>${seal.name}</h3>
 <p>
@@ -1294,6 +1423,10 @@ ${active
 grid.appendChild(card);
 
 });
+
+if(sealList.length){
+showSealDetail(sealList[0].name);
+}
 
 }
 
@@ -1321,6 +1454,8 @@ tr.innerHTML = `
 <td>${r.borrower}</td>
 <td>${r.department}</td>
 <td>${formatDate(r.borrowTime)}</td>
+<td>${r.projectNo || ""}</td>
+<td>${r.formNo || ""}</td>
 <td>${r.purpose}</td>
 
 <td>
@@ -1347,6 +1482,12 @@ document.getElementById("searchInput")
 const sealFilter =
 document.getElementById("sealFilter")
 .value;
+
+const projectFilter =
+(document.getElementById("projectFilter")?.value || "").toLowerCase();
+
+const formFilter =
+(document.getElementById("formFilter")?.value || "").toLowerCase();
 
 const borrowDate =
 document.getElementById("borrowDate")
@@ -1378,6 +1519,14 @@ const sealMatch =
 
 r.seal === sealFilter;
 
+const projectMatch =
+!projectFilter ||
+((r.projectNo || "").toLowerCase().includes(projectFilter));
+
+const formMatch =
+!formFilter ||
+((r.formNo || "").toLowerCase().includes(formFilter));
+
 const borrowMatch =
 
 !borrowDate ||
@@ -1394,14 +1543,29 @@ return (
 
 keywordMatch &&
 sealMatch &&
+projectMatch &&
+formMatch &&
 borrowMatch &&
 returnMatch
 
 );
 
 })
-.slice()
-.reverse();
+.sort((a,b)=>{
+
+const t1 =
+a.borrowTime?.seconds
+? a.borrowTime.seconds
+: 0;
+
+const t2 =
+b.borrowTime?.seconds
+? b.borrowTime.seconds
+: 0;
+
+return t2 - t1;
+
+});
 
 const totalPages =
 Math.ceil(filteredRecords.length / pageSize);
@@ -1436,6 +1600,10 @@ tr.innerHTML = `
 
 <td>${formatDate(r.returnTime)}</td>
 
+<td>${r.projectNo || ""}</td>
+
+<td>${r.formNo || ""}</td>
+
 <td>${r.purpose}</td>
 
 <td>
@@ -1450,6 +1618,13 @@ ${r.returnTime
 
 </td>
 
+<td>
+${r.returnTime
+? '<span style="color:#64748b;">🔒 已封存</span>'
+: `<button class="btn btn-gray" onclick="editRecord('${r.id}')">✏編輯</button>
+<button class="btn btn-red" onclick="deleteRecord('${r.id}')">🗑刪除</button>`
+}
+</td>
 
 `;
 
@@ -1516,6 +1691,60 @@ renderTable();
 }
 
 
+
+
+function closeEditModal(){
+document.getElementById('editOverlay').style.display='none';
+}
+
+async function editRecord(id){
+const r = records.find(x=>x.id===id);
+if(!r || r.returnTime){ alert('已歸還資料不可編輯'); return; }
+
+document.getElementById('editId').value=id;
+document.getElementById('editBorrower').value=r.borrower||'';
+document.getElementById('editDepartment').value=r.department||'';
+document.getElementById('editProjectNo').value=r.projectNo||'';
+document.getElementById('editFormNo').value=r.formNo||'';
+document.getElementById('editPurpose').value=r.purpose||'';
+
+document.getElementById('editOverlay').style.display='flex';
+}
+
+async function saveEditRecord(){
+const id=document.getElementById('editId').value;
+
+await updateDoc(doc(db,"sealRecords",id),{
+borrower:document.getElementById('editBorrower').value,
+department:document.getElementById('editDepartment').value,
+projectNo:document.getElementById('editProjectNo').value,
+formNo:document.getElementById('editFormNo').value,
+purpose:document.getElementById('editPurpose').value
+});
+
+closeEditModal();
+alert('修改成功');
+loadRecords();
+}
+
+async function deleteRecord(id){
+
+const r = records.find(x=>x.id===id);
+
+if(r && r.returnTime){
+alert("已歸還資料不可刪除");
+return;
+}
+
+if(!confirm("確定刪除此借用紀錄？")) return;
+
+await deleteDoc(doc(db,"sealRecords",id));
+
+alert("刪除成功");
+loadRecords();
+}
+
+
 function exportExcel(){
 
 const data =
@@ -1524,6 +1753,8 @@ records.map(r=>({
 印鑑:r.seal,
 借用人:r.borrower,
 部門:r.department,
+計畫編號:r.projectNo || "",
+表單編號:r.formNo || "",
 借用時間:formatDate(r.borrowTime),
 歸還時間:formatDate(r.returnTime),
 用途:r.purpose,
@@ -1553,6 +1784,10 @@ wb,
 window.borrowSeal = borrowSeal;
 window.returnSeal = returnSeal;
 window.exportExcel = exportExcel;
+window.editRecord = editRecord;
+window.deleteRecord = deleteRecord;
+window.closeEditModal=closeEditModal;
+window.saveEditRecord=saveEditRecord;
 
 window.addSeal = addSeal;
 window.deleteSeal = deleteSeal;
@@ -1570,6 +1805,12 @@ document.getElementById("searchInput")
 document.getElementById("sealFilter")
 .addEventListener("change",renderTable);
 
+document.getElementById("projectFilter")
+.addEventListener("input",renderTable);
+
+document.getElementById("formFilter")
+.addEventListener("input",renderTable);
+
 document.getElementById("borrowDate")
 .addEventListener("change",renderTable);
 
@@ -1582,5 +1823,19 @@ loadRecords();
 
 </script>
 
-</div></body>
+</div>
+<div id="editOverlay" class="edit-modal-overlay">
+<div class="edit-modal">
+<h2>✏️ 編輯借用資料</h2><br>
+<input type="hidden" id="editId">
+<div class="form-group"><label>借用人</label><input id="editBorrower"></div>
+<div class="form-group"><label>部門</label><input id="editDepartment"></div>
+<div class="form-group"><label>計畫編號</label><input id="editProjectNo"></div>
+<div class="form-group"><label>表單編號</label><input id="editFormNo"></div>
+<div class="form-group"><label>用途</label><textarea id="editPurpose"></textarea></div>
+<button class="btn btn-gray" onclick="closeEditModal()">取消</button>
+<button class="btn btn-green" onclick="saveEditRecord()">儲存</button>
+</div></div>
+
+</body>
 </html>
